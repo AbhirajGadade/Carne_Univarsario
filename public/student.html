@@ -122,17 +122,24 @@
             font-weight: 500;
         }
 
+        /* RIGHT SIDE OF HEADER (chip like admin) */
+        .header-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
         .session-chip {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 12px;
+            padding: 8px 18px;
             border-radius: 999px;
             background: #fff5f7;
             border: 1px solid var(--outline);
-            font-size: 12px;
+            font-size: 13px;
             color: var(--primary-dark);
-            margin-top: 6px;
+            white-space: nowrap;
         }
 
         /* Top Nav */
@@ -564,6 +571,10 @@
                 flex-direction: column;
             }
 
+            .header-right {
+                justify-content: center;
+            }
+
             .main-grid {
                 grid-template-columns: 1fr;
             }
@@ -601,10 +612,12 @@
                 <div class="brand-text">
                     <h1>Portal del Estudiante UMA</h1>
                     <p>Sistema de gestión académica</p>
-                    <div class="session-chip" id="sessionChip">
-                        <i class="fas fa-circle-notch fa-spin" style="font-size:11px;"></i>
-                        Conectando…
-                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="session-chip" id="sessionChip">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size:11px;"></i>
+                    Conectando…
                 </div>
             </div>
         </div>
@@ -825,10 +838,29 @@
         // start in loading mode
         document.body.classList.add('loading');
 
-        const code =
-            new URLSearchParams(location.search).get('code') ||
-            localStorage.getItem('uma_codigo') ||
+        // ---- GET STUDENT CODE (NO API ROOTS CHANGED) ----
+        const urlParams = new URLSearchParams(location.search);
+        let code =
+            urlParams.get('code') ||
+            urlParams.get('codigo') ||
             '';
+
+        const codeKeys = ['uma_codigo', 'codigo', 'uma_student_code', 'student_code'];
+
+        if (!code) {
+            for (const k of codeKeys) {
+                const v = localStorage.getItem(k);
+                if (v) {
+                    code = v;
+                    break;
+                }
+            }
+        }
+
+        // Remember code in all known keys for future visits
+        if (code) {
+            codeKeys.forEach(k => localStorage.setItem(k, code));
+        }
 
         if (!localStorage.getItem('uma_session_role')) {
             hideLoader();
@@ -837,13 +869,11 @@
         }
 
         if (code) {
-            localStorage.setItem('uma_codigo', code);
-        }
-
-        if (code) {
-            sessionChip.innerHTML = '<i class="fas fa-circle-check" style="font-size:11px;"></i> Conectado: ' + code;
+            sessionChip.innerHTML =
+                '<i class="fas fa-circle-check" style="font-size:11px;"></i> Conectado: ' + code;
         } else {
-            sessionChip.innerHTML = '<i class="fas fa-circle-exclamation" style="font-size:11px;"></i> Conectado';
+            sessionChip.innerHTML =
+                '<i class="fas fa-circle-exclamation" style="font-size:11px;"></i> Conectado';
         }
 
         function goto(route) {
@@ -886,7 +916,14 @@
             return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         }
 
+        // ------------- LOAD PROFILE (USES /api/student/profile) -------------
         async function loadProfile() {
+            if (!code) {
+                hideLoader();
+                showError('No se encontró el código de estudiante para cargar el perfil.');
+                return;
+            }
+
             try {
                 const r = await fetch('/api/student/profile', {
                     method: 'POST',
@@ -897,11 +934,24 @@
 
                 const text = await r.text();
                 const j = text ? JSON.parse(text) : {};
+                console.log('Perfil de estudiante /api/student/profile =>', j);
+
                 if (!r.ok || !j.ok) {
-                    throw new Error(j.error?.message || 'No se pudo obtener el perfil');
+                    throw new Error(
+                        (j && j.error && (j.error.message || j.error)) ||
+                        'No se pudo obtener el perfil'
+                    );
                 }
 
-                const s = j.data?.data || j.data || {};
+                // Soportar distintas formas de respuesta sin cambiar el API root
+                const root = j.data || j;
+                const s =
+                    root.data ||
+                    root.student ||
+                    root.alumno ||
+                    root ||
+                    {};
+
                 const firstName = s.name || s.nombres || s.nombre || '';
                 const lastName =
                     s.lastname || s.apellidos || s.apellido ||
@@ -956,6 +1006,7 @@
             }
         }
 
+        // ------------- PROGRESS BAR -------------
         function renderProgress() {
             const stepsEl = document.getElementById('steps');
             const progressStatus = document.getElementById('progressStatusText');
@@ -1015,6 +1066,7 @@
             setTimeout(() => { saved.style.display = 'none'; }, 1500);
         });
 
+        // ------------- PHOTO SECTION (KEEPS /validate ROUTE) -------------
         (function photoSection() {
             const drop = document.getElementById('drop');
             const fileInput = document.getElementById('file');
