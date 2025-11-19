@@ -185,6 +185,19 @@
       box-shadow: none;
     }
 
+    /* danger delete like before */
+    .btn-danger {
+      background: #f44336;
+      border-color: #f44336;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(244, 67, 54, 0.25);
+    }
+
+    .btn-danger:hover {
+      background: #d32f2f;
+      border-color: #d32f2f;
+    }
+
     .btn:disabled {
       opacity: .5;
       cursor: not-allowed;
@@ -401,11 +414,11 @@
               <span class="muted" id="countApproved">0 resultado(s)</span>
             </div>
           </div>
+
+          <!-- sólo eliminar, estilo peligro -->
           <div class="toolbar" style="margin-top:4px;margin-bottom:8px;">
             <div class="toolbar-left">
-              <button class="btn" id="btnZip" type="button">Generar Paquetes (ZIP)</button>
-              <button class="btn ghost" id="btnMarkSent" type="button">Marcar como Enviado</button>
-              <button class="btn ghost" id="btnDelete" type="button">Eliminar seleccionados</button>
+              <button class="btn btn-danger" id="btnDelete" type="button">Eliminar seleccionados</button>
             </div>
           </div>
 
@@ -414,11 +427,11 @@
               <tr>
                 <th></th>
                 <th>Estudiante</th>
+                <th>Código</th>
                 <th>DNI</th>
                 <th>Email</th>
                 <th>Especialidad</th>
                 <th>IA</th>
-                <th>SUNEDU</th>
                 <th></th>
               </tr>
             </thead>
@@ -461,7 +474,7 @@
             <div class="toolbar-left">
               <button class="btn" id="btnZipSunedu" type="button">Generar Paquetes (SUNEDU)</button>
               <button class="btn ghost" id="btnMarkSentSunedu" type="button">Marcar como Enviado</button>
-              <button class="btn ghost" id="btnDeleteSunedu" type="button">Eliminar seleccionados</button>
+              <button class="btn btn-danger" id="btnDeleteSunedu" type="button">Eliminar seleccionados</button>
             </div>
           </div>
           <table>
@@ -520,6 +533,8 @@
   <script>
     (function () {
       const TOKEN_KEY = 'uma_token_admin';
+      // datasets global para exportar/usar en tablas
+      let datasets = { approved: [], rejected: [], sunedu: [] };
 
       function toast(m, err) {
         const el = document.createElement('div');
@@ -559,7 +574,7 @@
       });
       goto('approved');
 
-      // Drawer references
+      // Drawer refs
       const drawer = document.getElementById('drawer');
       const dTitle = document.getElementById('dTitle');
       const dSub = document.getElementById('dSub');
@@ -605,7 +620,7 @@
         tb.innerHTML = `<tr><td colspan="${colSpan}"><div class="empty">${text}</div></td></tr>`;
       }
 
-      function renderTable(tbodyId, rows, kind, datasets) {
+      function renderTable(tbodyId, rows, kind, ds) {
         const tb = document.getElementById(tbodyId);
         if (!rows.length) {
           if (kind === 'approved') {
@@ -623,14 +638,12 @@
             <tr>
               <td><input type="checkbox" data-dni="${r.dni || ''}"></td>
               <td>${r.name || '—'}</td>
+              <td>${r.code || r.codigo || '—'}</td>
               <td>${r.dni || '—'}</td>
               <td>${r.email || '—'}</td>
               <td>${r.esp || '—'}</td>
               <td><span class="status-badge ${r.category === 'approved' ? 'status-approved' : 'status-rejected'}">
                     ${r.category === 'approved' ? 'Aprobada por IA' : 'Rechazada por IA'}
-                  </span></td>
-              <td><span class="status-badge ${r.suneduStatus === 'Enviado' ? 'status-approved' : 'status-pending'}">
-                    ${r.suneduStatus || 'Pendiente'}
                   </span></td>
               <td><button class="btn ghost viewBtn" data-kind="approved" data-index="${i}" type="button">Ver</button></td>
             </tr>`).join('');
@@ -663,7 +676,7 @@
           const kindBtn = btn.dataset.kind;
           const idx = parseInt(btn.dataset.index, 10);
           btn.addEventListener('click', () => {
-            const srcArr = datasets[kindBtn] || [];
+            const srcArr = ds[kindBtn] || [];
             const row = srcArr[idx];
             if (row) openDrawer(kindBtn, row);
           });
@@ -694,7 +707,7 @@
             codigo: r.code || r.codigo || ('A' + (i + 1))
           }));
 
-          const datasets = { approved, rejected, sunedu };
+          datasets = { approved, rejected, sunedu };
 
           renderTable('approvedRows', approved, 'approved', datasets);
           document.getElementById('countApproved').textContent = `${approved.length} resultado(s)`;
@@ -712,7 +725,7 @@
 
       async function generateZipForApproved() {
         try {
-          const tbody = document.getElementById('approvedRows');
+          const tbody = document.getElementById('suneduRows'); // usamos SUNEDU para ZIP
           const boxes = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-dni]'));
           const dniList = boxes.filter(b => b.checked && b.dataset.dni).map(b => b.dataset.dni);
 
@@ -796,18 +809,59 @@
         return boxes.filter(b => b.checked && b.dataset.dni).map(b => b.dataset.dni);
       }
 
-      // buttons
-      document.getElementById('exportCSV').addEventListener('click', () => toast('Export CSV (demo)', false));
-      document.getElementById('btnZip').addEventListener('click', generateZipForApproved);
-      document.getElementById('btnMarkSent').addEventListener('click', () => toast('Marcadas como enviadas (demo)', false));
-      document.getElementById('btnZipSunedu').addEventListener('click', generateZipForApproved); // reuse same ZIP logic
-      document.getElementById('btnMarkSentSunedu').addEventListener('click', () => toast('Marcadas (SUNEDU) enviadas (demo)', false));
+      // --- Export CSV (Estudiante + Código + ...) ---
+      function exportApprovedToCSV() {
+        const rows = datasets.approved || [];
+        if (!rows.length) {
+          toast('No hay solicitudes aprobadas para exportar', true);
+          return;
+        }
+
+        const header = ['Estudiante', 'Código', 'DNI', 'Email', 'Especialidad', 'IA'];
+        const csvLines = [];
+        csvLines.push(header.join(','));
+
+        rows.forEach(r => {
+          const ia = r.category === 'approved' ? 'Aprobada por IA' : 'Rechazada por IA';
+          const code = r.code || r.codigo || '';
+          const values = [
+            r.name || '',
+            code,
+            r.dni || '',
+            r.email || '',
+            r.esp || '',
+            ia
+          ].map(v => '"' + String(v).replace(/"/g, '""') + '"');
+          csvLines.push(values.join(','));
+        });
+
+        const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+
+        a.href = url;
+        a.download = `uma_solicitudes_aprobadas_${y}${m}${d}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // botones
+      document.getElementById('exportCSV').addEventListener('click', exportApprovedToCSV);
 
       document.getElementById('btnDelete').addEventListener('click', () => {
         const dniList = collectDniFromTable('approvedRows');
         deleteByDniList(dniList);
       });
 
+      document.getElementById('btnZipSunedu').addEventListener('click', generateZipForApproved);
+      document.getElementById('btnMarkSentSunedu').addEventListener('click', () => toast('Marcadas (SUNEDU) enviadas (demo)', false));
       document.getElementById('btnDeleteSunedu').addEventListener('click', () => {
         const dniList = collectDniFromTable('suneduRows');
         deleteByDniList(dniList);

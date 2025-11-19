@@ -1,22 +1,6 @@
 {
   "submissions": [
     {
-      "dni": "47892916",
-      "code": "142096",
-      "name": "LIZBETH AURORA VASQUEZ BARBOZA",
-      "email": "lizbeth.vasquez@uma.edu.pe",
-      "esp": "ENFERMERÍA",
-      "category": "approved",
-      "ok": true,
-      "photoUrl": "/photos/approved/47892916.jpg",
-      "filename": "47892916.jpg",
-      "issues": [],
-      "updatedAt": "2025-11-18T21:11:35.688Z",
-      "createdAt": "2025-11-17T21:57:13.836Z",
-      "suneduStatus": "Pendiente",
-      "relative_path": "photos\\approved\\47892916.jpg"
-    },
-    {
       "dni": "41275605",
       "code": "181272",
       "name": "LIZ MARIA LOPEZ BURGOS",
@@ -62,6 +46,54 @@
       "issues": [],
       "updatedAt": "2025-11-18T21:13:06.501Z",
       "createdAt": "2025-11-18T21:13:06.501Z",
+      "suneduStatus": "Pendiente"
+    },
+    {
+      "dni": "46873756",
+      "code": "151466",
+      "name": "MEDALY SANTILLAN ROJAS",
+      "email": "medaly.santillan@uma.edu.pe",
+      "esp": "FARMACIA Y BIOQUÍMICA",
+      "category": "approved",
+      "ok": true,
+      "photoUrl": "/photos/approved/46873756.jpg",
+      "filename": "46873756.jpg",
+      "relative_path": "photos\\approved\\46873756.jpg",
+      "issues": [],
+      "updatedAt": "2025-11-19T16:15:41.335Z",
+      "createdAt": "2025-11-19T16:15:37.959Z",
+      "suneduStatus": "Pendiente"
+    },
+    {
+      "dni": "47892916",
+      "code": "142096",
+      "name": "LIZBETH AURORA VASQUEZ BARBOZA",
+      "email": "lizbeth.vasquez@uma.edu.pe",
+      "esp": "ENFERMERÍA",
+      "category": "approved",
+      "ok": true,
+      "photoUrl": "/photos/approved/47892916.jpg",
+      "filename": "47892916.jpg",
+      "relative_path": "photos\\approved\\47892916.jpg",
+      "issues": [],
+      "updatedAt": "2025-11-19T22:32:26.791Z",
+      "createdAt": "2025-11-19T19:53:27.888Z",
+      "suneduStatus": "Pendiente"
+    },
+    {
+      "dni": "74160877",
+      "code": "151396",
+      "name": "DANTE OLIVER CONDORI HUARACHA",
+      "email": "dante.condori@uma.edu.pe",
+      "esp": "FARMACIA Y BIOQUÍMICA",
+      "category": "approved",
+      "ok": true,
+      "photoUrl": "/photos/approved/74160877.jpg",
+      "filename": "74160877.jpg",
+      "relative_path": "photos\\approved\\74160877.jpg",
+      "issues": [],
+      "updatedAt": "2025-11-19T20:47:24.428Z",
+      "createdAt": "2025-11-19T20:47:21.335Z",
       "suneduStatus": "Pendiente"
     }
   ]
