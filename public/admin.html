@@ -61,18 +61,30 @@
     .pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       font-weight: 700;
-      font-size: 12px;
-      padding: 6px 10px;
+      font-size: 13px;
+      padding: 6px 14px;
       border-radius: 999px;
       border: 1px solid var(--outline);
-      background: #fff;
+      background: #f3f4f6;
+      color: #111827;
     }
 
     .pill.info {
-      color: #a31231;
-      background: #fff5f7;
+      background: #f3f4f6;
+    }
+
+    .pill-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 12px;
     }
 
     .app {
@@ -388,7 +400,11 @@
           <div class="muted">Gestión de solicitudes y fotos</div>
         </div>
       </div>
-      <div id="session" class="pill info">Conectado</div>
+      <!-- pill now matches "Connected: xxxx" style -->
+      <div id="session" class="pill info">
+        <span class="pill-icon">👤</span>
+        <span>Connected</span>
+      </div>
     </div>
 
     <div class="app">
@@ -431,6 +447,7 @@
                 <th>DNI</th>
                 <th>Email</th>
                 <th>Especialidad</th>
+                <th>Foto</th> <!-- nueva columna URL foto Supabase -->
                 <th>IA</th>
                 <th></th>
               </tr>
@@ -546,13 +563,23 @@
 
       // ---- guard ----
       (function guard() {
+        const sessionEl = document.getElementById('session');
         const role = localStorage.getItem('uma_session_role');
         const email = localStorage.getItem('uma_session_email') || 'admin';
+
         if (role !== 'admin' || !localStorage.getItem(TOKEN_KEY)) {
-          document.getElementById('session').textContent = `Modo demo admin`;
+          sessionEl.innerHTML = `
+            <span class="pill-icon">👤</span>
+            <span>Connected (demo)</span>
+          `;
           return;
         }
-        document.getElementById('session').textContent = `Conectado: ${email}`;
+
+        // Real admin session
+        sessionEl.innerHTML = `
+          <span class="pill-icon">👤</span>
+          <span>Connected: ${email}</span>
+        `;
       })();
 
       function goto(hash) {
@@ -595,7 +622,11 @@
       function openDrawer(kind, row) {
         dTitle.textContent = row.name || 'Estudiante';
         dSub.textContent = kind === 'rejected' ? 'Solicitud rechazada' : 'Solicitud aprobada';
-        dPhoto.src = row.photoUrl || '';
+
+        const photoUrl = row.supabase_url || row.photoUrl || row.http_url || '';
+        dPhoto.src = photoUrl || '';
+        dPhoto.style.display = photoUrl ? 'block' : 'none';
+
         const ok = row.category === 'approved';
 
         dAI.textContent = ok ? 'Aprobada por IA' : 'Rechazada por IA';
@@ -624,7 +655,7 @@
         const tb = document.getElementById(tbodyId);
         if (!rows.length) {
           if (kind === 'approved') {
-            renderEmptyRow(tbodyId, 8, 'Sin solicitudes aprobadas aún.');
+            renderEmptyRow(tbodyId, 9, 'Sin solicitudes aprobadas aún.');
           } else if (kind === 'rejected') {
             renderEmptyRow(tbodyId, 6, 'Sin solicitudes rechazadas.');
           } else {
@@ -634,7 +665,14 @@
         }
 
         if (kind === 'approved') {
-          tb.innerHTML = rows.map((r, i) => `
+          tb.innerHTML = rows.map((r, i) => {
+            const iaOk = r.category === 'approved';
+            const photoUrl = r.supabase_url || r.photoUrl || r.http_url || '';
+            const photoCell = photoUrl
+              ? `<a href="${photoUrl}" target="_blank" rel="noopener noreferrer">Ver foto</a>`
+              : '—';
+
+            return `
             <tr>
               <td><input type="checkbox" data-dni="${r.dni || ''}"></td>
               <td>${r.name || '—'}</td>
@@ -642,11 +680,13 @@
               <td>${r.dni || '—'}</td>
               <td>${r.email || '—'}</td>
               <td>${r.esp || '—'}</td>
-              <td><span class="status-badge ${r.category === 'approved' ? 'status-approved' : 'status-rejected'}">
-                    ${r.category === 'approved' ? 'Aprobada por IA' : 'Rechazada por IA'}
+              <td>${photoCell}</td>
+              <td><span class="status-badge ${iaOk ? 'status-approved' : 'status-rejected'}">
+                    ${iaOk ? 'Aprobada por IA' : 'Rechazada por IA'}
                   </span></td>
               <td><button class="btn ghost viewBtn" data-kind="approved" data-index="${i}" type="button">Ver</button></td>
-            </tr>`).join('');
+            </tr>`;
+          }).join('');
         } else if (kind === 'rejected') {
           tb.innerHTML = rows.map((r, i) => `
             <tr>
@@ -817,19 +857,21 @@
           return;
         }
 
-        const header = ['Estudiante', 'Código', 'DNI', 'Email', 'Especialidad', 'IA'];
+        const header = ['Estudiante', 'Código', 'DNI', 'Email', 'Especialidad', 'FotoURL', 'IA'];
         const csvLines = [];
         csvLines.push(header.join(','));
 
         rows.forEach(r => {
           const ia = r.category === 'approved' ? 'Aprobada por IA' : 'Rechazada por IA';
           const code = r.code || r.codigo || '';
+          const photoUrl = r.supabase_url || r.photoUrl || r.http_url || '';
           const values = [
             r.name || '',
             code,
             r.dni || '',
             r.email || '',
             r.esp || '',
+            photoUrl,
             ia
           ].map(v => '"' + String(v).replace(/"/g, '""') + '"');
           csvLines.push(values.join(','));

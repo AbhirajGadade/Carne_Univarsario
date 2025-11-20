@@ -76,7 +76,7 @@
       "filename": "47892916.jpg",
       "relative_path": "photos\\approved\\47892916.jpg",
       "issues": [],
-      "updatedAt": "2025-11-19T22:32:26.791Z",
+      "updatedAt": "2025-11-20T17:38:13.880Z",
       "createdAt": "2025-11-19T19:53:27.888Z",
       "suneduStatus": "Pendiente"
     },
@@ -94,6 +94,54 @@
       "issues": [],
       "updatedAt": "2025-11-19T20:47:24.428Z",
       "createdAt": "2025-11-19T20:47:21.335Z",
+      "suneduStatus": "Pendiente"
+    },
+    {
+      "dni": "40586454",
+      "code": "151346",
+      "name": "VILMA ELENA ROCCA RAMIREZ",
+      "email": "vilma.rocca@uma.edu.pe",
+      "esp": "FARMACIA Y BIOQUÍMICA",
+      "category": "approved",
+      "ok": true,
+      "photoUrl": "/photos/approved/40586454.jpg",
+      "filename": "40586454.jpg",
+      "relative_path": "photos\\approved\\40586454.jpg",
+      "issues": [],
+      "updatedAt": "2025-11-20T20:58:11.568Z",
+      "createdAt": "2025-11-20T20:13:24.089Z",
+      "suneduStatus": "Pendiente"
+    },
+    {
+      "dni": "10663947",
+      "code": "132116",
+      "name": "CRISTIAN ALEJANDRO MUÑICO ENCARNACION",
+      "email": "cristian.munico@uma.edu.pe",
+      "esp": "PSICOLOGÍA",
+      "category": "approved",
+      "ok": true,
+      "photoUrl": "/photos/approved/10663947.jpg",
+      "filename": "10663947.jpg",
+      "relative_path": "photos\\approved\\10663947.jpg",
+      "issues": [],
+      "updatedAt": "2025-11-20T22:07:22.026Z",
+      "createdAt": "2025-11-20T20:59:14.540Z",
+      "suneduStatus": "Pendiente"
+    },
+    {
+      "dni": "75851868",
+      "code": "151087",
+      "name": "LUIS EMMANUEL JESUS NAVARRO SILVA",
+      "email": "luis.navarro@uma.edu.pe",
+      "esp": "ADMINISTRACIÓN Y NEGOCIOS INTERNACIONALES",
+      "category": "approved",
+      "ok": true,
+      "photoUrl": "/photos/approved/75851868.jpg",
+      "filename": "75851868.jpg",
+      "relative_path": "photos\\approved\\75851868.jpg",
+      "issues": [],
+      "updatedAt": "2025-11-20T22:15:59.759Z",
+      "createdAt": "2025-11-20T22:15:59.759Z",
       "suneduStatus": "Pendiente"
     }
   ]

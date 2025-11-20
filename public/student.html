@@ -741,20 +741,49 @@
                         <form id="appForm">
                             <div class="form-grid">
                                 <div class="field">
-                                    <label>👤 Nombre</label>
-                                    <input id="name_profile" class="input" readonly placeholder="—">
+                                    <label for="name_profile">👤 Nombre</label>
+                                    <input
+                                        id="name_profile"
+                                        name="name"
+                                        type="text"
+                                        class="input"
+                                        readonly
+                                        placeholder="—"
+                                        autocomplete="name"
+                                    >
                                 </div>
                                 <div class="field">
-                                    <label>✉️ Correo</label>
-                                    <input id="email_profile" class="input" readonly placeholder="—">
+                                    <label for="email_profile">✉️ Correo</label>
+                                    <input
+                                        id="email_profile"
+                                        name="email"
+                                        type="email"
+                                        class="input"
+                                        readonly
+                                        placeholder="—"
+                                        autocomplete="email"
+                                    >
                                 </div>
                                 <div class="field">
-                                    <label>🔖 Código</label>
-                                    <input id="codigo_profile" class="input" readonly placeholder="—">
+                                    <label for="codigo_profile">🔖 Código</label>
+                                    <input
+                                        id="codigo_profile"
+                                        name="student_code"
+                                        type="text"
+                                        class="input"
+                                        readonly
+                                        placeholder="—"
+                                        autocomplete="off"
+                                    >
                                 </div>
                                 <div class="field">
-                                    <label>🎓 Programa / Especialidad</label>
-                                    <select id="program" required>
+                                    <label for="program">🎓 Programa / Especialidad</label>
+                                    <select
+                                        id="program"
+                                        name="program"
+                                        required
+                                        autocomplete="off"
+                                    >
                                         <option value="">Selecciona…</option>
                                         <option>FARMACIA Y BIOQUÍMICA</option>
                                         <option>ENFERMERÍA</option>
@@ -767,20 +796,50 @@
                                     <input type="hidden" id="especialidad" value="">
                                 </div>
                                 <div class="field">
-                                    <label>🆔 Número de documento (DNI)</label>
-                                    <input id="doc" class="input" placeholder="12345678" required>
+                                    <label for="doc">🆔 Número de documento (DNI)</label>
+                                    <input
+                                        id="doc"
+                                        name="dni"
+                                        type="text"
+                                        class="input"
+                                        placeholder="12345678"
+                                        required
+                                        autocomplete="off"
+                                    >
                                 </div>
                                 <div class="field">
-                                    <label>⚧ Género</label>
-                                    <input id="gender_profile" class="input" readonly placeholder="—">
+                                    <label for="gender_profile">⚧ Género</label>
+                                    <input
+                                        id="gender_profile"
+                                        name="gender"
+                                        type="text"
+                                        class="input"
+                                        readonly
+                                        placeholder="—"
+                                        autocomplete="sex"
+                                    >
                                 </div>
                                 <div class="field">
-                                    <label>📞 Teléfono</label>
-                                    <input id="phone" class="input" placeholder="+51 999 999 999">
+                                    <label for="phone">📞 Teléfono</label>
+                                    <input
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        class="input"
+                                        placeholder="+51 999 999 999"
+                                        autocomplete="tel"
+                                    >
                                 </div>
                                 <div class="field">
-                                    <label>📍 Dirección</label>
-                                    <input id="address" class="input" placeholder="Calle, Ciudad">
+                                    <label for="address">📍 Dirección</label>
+                                    <input
+                                        id="address"
+                                        name="address"
+                                        type="text"
+                                        class="input"
+                                        placeholder="Calle, Ciudad"
+                                        autocomplete="street-address"
+                                    >
                                 </div>
                             </div>
                             <div class="btn-row">

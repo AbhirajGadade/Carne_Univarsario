@@ -11,6 +11,7 @@ Rules:
 - Background mostly white/clear
 - Final JPEG <= 50KB
 - Save to photos/approved or photos/rejected
+- If approved, upload to Supabase Storage (bucket: student-photos)
 """
 
 import base64
@@ -27,6 +28,7 @@ from cv2 import data as cv2_data
 from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, ImageOps
+import requests  # <--- needed for Supabase REST calls
 
 load_dotenv()
 
@@ -34,6 +36,11 @@ load_dotenv()
 TARGET_W, TARGET_H = 240, 288
 MAX_BYTES = int(os.getenv("UMA_MAX_BYTES", 50 * 1024))  # 50 KB strict
 PHOTOS_DIR = os.getenv("UMA_PHOTOS_DIR", "photos")
+
+# Supabase config
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "student-photos")
 
 # background / face config
 BORDER = 10
@@ -53,107 +60,68 @@ try:
 except Exception:
     RESAMPLE_LANCZOS = getattr(Image, "LANCZOS", getattr(Image, "BILINEAR", 2))
 
-# Optional Google Drive (can be disabled by USE_DRIVE=0)
-USE_DRIVE = os.getenv("USE_DRIVE", "0") == "1"
-DRIVE_SA_PATH = os.getenv("DRIVE_SA_PATH")
-DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID")
-DRIVE_PUBLIC = os.getenv("DRIVE_PUBLIC", "1") == "1"
-
-_drive_svc = None
-_drive_ready = False
-_drive_email: Optional[str] = None
-
 
 def _log(*a: Any) -> None:
     print(*a, flush=True)
 
 
-def _ensure_drive():
-    """Lazy init Drive client, only if USE_DRIVE=1."""
-    global _drive_svc, _drive_ready, _drive_email
-    if _drive_svc or not USE_DRIVE:
-        return _drive_svc
-    if not DRIVE_SA_PATH or not os.path.exists(DRIVE_SA_PATH):
-        _log("[drive] Service account JSON not found:", DRIVE_SA_PATH)
-        return None
+# ---------------- Supabase upload helper ----------------
+def _supabase_upload_local_file(local_path: str, object_key: str) -> Dict[str, Any]:
+    """
+    Uploads a local JPEG file to Supabase Storage.
 
-    try:
-        from google.oauth2 import service_account
-        from googleapiclient.discovery import build
+    - local_path: path on disk (e.g. photos/approved/12345678.jpg)
+    - object_key: key in the bucket (e.g. approved/12345678.jpg)
 
-        scopes = ["https://www.googleapis.com/auth/drive"]
-        creds = service_account.Credentials.from_service_account_file(
-            DRIVE_SA_PATH, scopes=scopes
-        )
-        _drive_email = creds.service_account_email
-        _drive_svc = build("drive", "v3", credentials=creds, cache_discovery=False)
-        _drive_ready = True
-        _log(f"[drive] client ready as {_drive_email}")
-    except Exception as e:
-        _log("[drive] init error:", repr(e))
-        _drive_svc = None
-    return _drive_svc
+    Uses:
+      SUPABASE_URL
+      SUPABASE_SERVICE_ROLE_KEY
+      SUPABASE_BUCKET
+    """
+    info: Dict[str, Any] = {"used": False, "object_key": object_key}
 
-
-def _drive_upload(path: str, filename: str) -> Dict[str, Any]:
-    info: Dict[str, Any] = {}
-    if not USE_DRIVE:
-        info["error"] = "USE_DRIVE=0"
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        info["error"] = "missing_supabase_config"
         return info
 
-    svc = _ensure_drive()
-    if not svc:
-        info["error"] = "drive_not_ready"
-        return info
-
-    if not DRIVE_FOLDER_ID:
-        info["error"] = "DRIVE_FOLDER_ID missing"
-        return info
-
-    if not os.path.exists(path):
+    if not os.path.exists(local_path):
         info["error"] = "file_not_found"
         return info
 
     try:
-        from googleapiclient.http import MediaFileUpload
+        with open(local_path, "rb") as f:
+            data = f.read()
 
-        file_metadata = {"name": filename, "parents": [DRIVE_FOLDER_ID]}
-        media = MediaFileUpload(path, mimetype="image/jpeg", resumable=False)
+        endpoint = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{object_key}"
 
-        created = (
-            svc.files()
-            .create(
-                body=file_metadata,
-                media_body=media,
-                fields="id, webViewLink, webContentLink",
-            )
-            .execute()
-        )
+        # IMPORTANT:
+        #  - Use secret key as "apikey"
+        #  - Do NOT put it in Authorization as Bearer (that causes 'Invalid Compact JWS')
+        headers = {
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Content-Type": "image/jpeg",
+            "x-upsert": "true",
+        }
 
-        file_id = created.get("id")
-        info.update(
-            {
-                "id": file_id,
-                "webViewLink": created.get("webViewLink"),
-                "webContentLink": created.get("webContentLink"),
-            }
-        )
+        resp = requests.post(endpoint, headers=headers, data=data, timeout=30)
+        info["status_code"] = resp.status_code
 
-        if DRIVE_PUBLIC and file_id:
-            try:
-                svc.permissions().create(
-                    fileId=file_id,
-                    body={"role": "reader", "type": "anyone"},
-                ).execute()
-            except Exception as e:
-                _log("[drive] permission error:", repr(e))
+        if resp.ok:
+            info["used"] = True
+            # public URL (bucket is Public in your screenshots)
+            info[
+                "public_url"
+            ] = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{object_key}"
+        else:
+            info["error"] = f"{resp.status_code} {resp.text}"
 
-        if file_id:
-            info["public_url"] = f"https://drive.google.com/uc?id={file_id}"
-            _log(f"[drive] uploaded: {filename} -> {file_id}")
     except Exception as e:
         info["error"] = repr(e)
-        _log("[drive] upload error:", repr(e))
+
+    if info.get("error"):
+        _log("[supabase] upload failed:", info["error"])
+    else:
+        _log("[supabase] upload ok:", info.get("public_url"))
 
     return info
 
@@ -306,17 +274,15 @@ def face_rules(
 # ---------------- Routes ----------------
 @app.get("/health")
 def health() -> Dict[str, Any]:
-    _ensure_drive()
     return {
         "ok": True,
         "msg": "UMA validator healthy",
         "target": [TARGET_W, TARGET_H],
         "max_bytes": MAX_BYTES,
-        "drive": {
-            "use": USE_DRIVE,
-            "ready": _drive_ready,
-            "folder": DRIVE_FOLDER_ID,
-            "sa": _drive_email,
+        "supabase": {
+            "url": SUPABASE_URL,
+            "bucket": SUPABASE_BUCKET,
+            "has_key": bool(SUPABASE_SERVICE_ROLE_KEY),
         },
     }
 
@@ -369,7 +335,6 @@ def validate(
             )
 
         ok = (len(issues) == 0) and (len(jpg) <= MAX_BYTES)
-
         if not ok and not issues:
             issues.append("La foto no cumple con los criterios requeridos.")
 
@@ -384,17 +349,25 @@ def validate(
 
         data_url = "data:image/jpeg;base64," + base64.b64encode(jpg).decode("ascii")
 
-        drive_info: Dict[str, Any] = {}
+        # --- Supabase upload (only for approved photos) ---
+        supabase_info: Dict[str, Any] = {"used": False}
         http_url: Optional[str] = None
-        if ok and USE_DRIVE:
-            drive_info = _drive_upload(save_path, fname)
-            http_url = (
-                drive_info.get("public_url")
-                or drive_info.get("webContentLink")
-                or drive_info.get("webViewLink")
-            )
 
-        _log("[validator]", "dni=", dni, "ok=", ok, "issues=", issues, "bytes=", len(jpg))
+        if ok:
+            object_key = f"{bucket}/{fname}"  # approved/<dni>.jpg
+            supabase_info = _supabase_upload_local_file(save_path, object_key)
+            if supabase_info.get("used"):
+                http_url = supabase_info.get("public_url")
+
+        _log(
+            "[validator]",
+            "dni=", dni,
+            "ok=", ok,
+            "issues=", issues,
+            "bytes=", len(jpg),
+            "local=", save_path,
+            "supabase_used=", supabase_info.get("used"),
+        )
 
         return {
             "ok": ok,
@@ -407,11 +380,10 @@ def validate(
             "relative_path": save_path,
             "data_url": data_url,
             "http_url": http_url,
-            "drive": drive_info,
+            "supabase": supabase_info,
         }
 
     except Exception as e:
-        # Safety net: always return JSON, never raw error
         _log("[validator] unexpected error:", repr(e))
         return {
             "ok": False,
