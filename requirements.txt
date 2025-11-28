@@ -1,12 +1,6 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pillow
-numpy>=1.24,<3
-opencv-python-headless<5
 python-dotenv
-google-api-python-client
-google-auth
-google-auth-httplib2
-google-auth-oauthlib
+requests
 python-multipart
-
