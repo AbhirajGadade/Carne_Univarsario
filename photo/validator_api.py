@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-UMA Photo Validator API (no OpenCV, no Gemini)
+UMA Photo Validator API 
 
 Behaviour:
 - Accept JPG/PNG.
