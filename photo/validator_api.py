@@ -45,9 +45,9 @@ MAX_ORIGINAL_BYTES = int(os.getenv("UMA_MAX_ORIG_BYTES", MAX_BYTES))
 PHOTOS_DIR = os.getenv("UMA_PHOTOS_DIR", "photos")
 
 # background check (brightness 0-255 on grayscale)
-BORDER_PIXELS = 20           # border thickness to inspect
-WHITE_THRESHOLD = 230        # pixel >= this is considered "white"
-BACKGROUND_MIN_WHITE = 0.80  # 80% of border pixels must be white
+BORDER_PIXELS = 12           # border thickness to inspect
+WHITE_THRESHOLD = 220        # pixel >= this is considered "white"
+BACKGROUND_MIN_WHITE = 0.20  # 80% of border pixels must be white
 
 os.makedirs(os.path.join(PHOTOS_DIR, "approved"), exist_ok=True)
 os.makedirs(os.path.join(PHOTOS_DIR, "rejected"), exist_ok=True)
@@ -163,20 +163,22 @@ def border_white_ratio(pil_img: Image.Image) -> float:
 def passport_crop(pil_img: Image.Image) -> Image.Image:
     """
     Crop image to a passport-style portrait:
-    - Zoom in to head & shoulders.
+
     - Keep aspect ratio TARGET_W : TARGET_H (240x288).
-    - Slightly bias crop towards the top (more space below shoulders).
+    - Zoom in, but not too aggressively, so we keep space above the head.
+    - Center vertically (no strong bias to the top).
     """
     w, h = pil_img.size
     target_ratio = TARGET_W / TARGET_H
 
-    # Start by cropping some of the height to zoom in (80% of height)
-    crop_factor = 0.8 if h > TARGET_H else 1.0
+    # Use about 90% of the height if the image is tall enough.
+    # This is less aggressive than 80%, so we keep more headroom.
+    crop_factor = 0.9 if h > TARGET_H * 1.2 else 1.0
     new_h = max(int(h * crop_factor), TARGET_H)
     new_w = int(new_h * target_ratio)
 
+    # If that crop would be wider than the original, fall back to width-limited.
     if new_w > w:
-        # Image is too narrow; fall back to width-limited crop
         new_w = w
         new_h = int(new_w / target_ratio)
 
@@ -184,10 +186,9 @@ def passport_crop(pil_img: Image.Image) -> Image.Image:
     left = max(0, (w - new_w) // 2)
     right = left + new_w
 
-    # Vertical: bias up a bit (15% margin at top, 85% below)
+    # Vertical: center (no top bias -> more space above the head)
     max_top = h - new_h
-    top = int(max_top * 0.15) if max_top > 0 else 0
-    top = max(0, min(top, max_top))
+    top = max_top // 2 if max_top > 0 else 0
     bottom = top + new_h
 
     return pil_img.crop((left, top, right, bottom))
@@ -233,9 +234,8 @@ def run_pipeline(
 
     if require_white_bg and not background_ok:
         issues.append(
-            "The photo should be taken in front of a plain white wall, "
-            "with no objects or colors in the background. Take the photo "
-            "again using a completely white background."
+            "La foto debe tomarse frente a una pared blanca lisa, "
+            "sin objetos ni colores de fondo. Repita la foto con un fondo completamente blanco."
         )
 
     # 2) crop to passport style
