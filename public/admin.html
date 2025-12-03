@@ -602,6 +602,7 @@
     (function () {
       const TOKEN_KEY = 'uma_token_admin';
       let datasets = { approved: [], rejected: [], sunedu: [] };
+      let currentFilters = { approved: '', rejected: '', sunedu: '' };
 
       function toast(m, err) {
         const el = document.createElement('div');
@@ -783,6 +784,45 @@
         });
       }
 
+      // ---- filtering helpers ----
+      function filterRows(kind, term) {
+        const base = datasets[kind] || [];
+        const q = (term || '').trim().toLowerCase();
+        if (!q) return base;
+
+        return base.filter(r => {
+          const parts = [
+            r.code || r.codigo,
+            r.dni,
+            r.name,
+            r.email,
+            r.facultad || r.faculty,
+            r.carrera || r.esp
+          ];
+          const haystack = parts
+            .filter(Boolean)
+            .map(v => String(v).toLowerCase())
+            .join(' ');
+          return haystack.includes(q);
+        });
+      }
+
+      function applyFilter(kind) {
+        const term = currentFilters[kind] || '';
+        const filtered = filterRows(kind, term);
+
+        if (kind === 'approved') {
+          renderTable('approvedRows', filtered, 'approved', { approved: filtered });
+          document.getElementById('countApproved').textContent = `${filtered.length} resultado(s)`;
+        } else if (kind === 'rejected') {
+          renderTable('rejectedRows', filtered, 'rejected', { rejected: filtered });
+          document.getElementById('countRejected').textContent = `${filtered.length} resultado(s)`;
+        } else if (kind === 'sunedu') {
+          renderTable('suneduRows', filtered, 'sunedu', { sunedu: filtered });
+          document.getElementById('countSunedu').textContent = `${filtered.length} aprobado(s)`;
+        }
+      }
+
       async function loadAdminData() {
         try {
           const r = await fetch('/api/admin/submissions');
@@ -809,14 +849,10 @@
 
           datasets = { approved, rejected, sunedu };
 
-          renderTable('approvedRows', approved, 'approved', datasets);
-          document.getElementById('countApproved').textContent = `${approved.length} resultado(s)`;
-
-          renderTable('rejectedRows', rejected, 'rejected', datasets);
-          document.getElementById('countRejected').textContent = `${rejected.length} resultado(s)`;
-
-          renderTable('suneduRows', sunedu, 'sunedu', datasets);
-          document.getElementById('countSunedu').textContent = `${sunedu.length} aprobado(s)`;
+          // render with current filters (or all if empty)
+          applyFilter('approved');
+          applyFilter('rejected');
+          applyFilter('sunedu');
         } catch (e) {
           toast('No se pudo cargar datos admin', true);
           console.warn(e);
@@ -971,6 +1007,32 @@
         const dniList = collectDniFromTable('suneduRows');
         deleteByDniList(dniList);
       });
+
+      // --- hook up the three search boxes for live filtering ---
+      const searchApproved = document.querySelector('#route-approved .search');
+      const searchRejected = document.querySelector('#route-rejected .search');
+      const searchSunedu = document.querySelector('#route-sunedu .search');
+
+      if (searchApproved) {
+        searchApproved.addEventListener('input', (e) => {
+          currentFilters.approved = e.target.value;
+          applyFilter('approved');
+        });
+      }
+
+      if (searchRejected) {
+        searchRejected.addEventListener('input', (e) => {
+          currentFilters.rejected = e.target.value;
+          applyFilter('rejected');
+        });
+      }
+
+      if (searchSunedu) {
+        searchSunedu.addEventListener('input', (e) => {
+          currentFilters.sunedu = e.target.value;
+          applyFilter('sunedu');
+        });
+      }
 
       loadAdminData();
     })();
