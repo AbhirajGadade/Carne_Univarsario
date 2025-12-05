@@ -156,8 +156,7 @@
 
     .link {
       appearance: none;
-      width: 100%;
-      display: flex;
+      width: 100%; display: flex;
       align-items: center;
       gap: 10px;
       padding: 10px 12px;
@@ -181,13 +180,8 @@
       background: #fff0f4;
     }
 
-    .screen {
-      display: none;
-    }
-
-    .screen.active {
-      display: block;
-    }
+    .screen { display: none; }
+    .screen.active { display: block; }
 
     .toolbar {
       display: flex;
@@ -355,9 +349,7 @@
       flex-direction: column;
     }
 
-    #drawer.open {
-      transform: translateX(0);
-    }
+    #drawer.open { transform: translateX(0); }
 
     #drawer header {
       padding: 14px 16px;
@@ -434,9 +426,7 @@
       gap: 8px;
     }
 
-    .code-with-checkbox input {
-      margin: 0;
-    }
+    .code-with-checkbox input { margin: 0; }
   </style>
 </head>
 
@@ -620,6 +610,7 @@
       const TOKEN_KEY = 'uma_token_admin';
       let datasets = { approved: [], rejected: [], sunedu: [] };
       let currentFilters = { approved: '', rejected: '', sunedu: '' };
+      let drawerRow = null; // row currently open in drawer
 
       function toast(m, err) {
         const el = document.createElement('div');
@@ -682,10 +673,10 @@
       const dSupabase = document.getElementById('dSupabase');
 
       document.getElementById('closeDrawer').addEventListener('click', () => drawer.classList.remove('open'));
-      document.getElementById('dGenerate').addEventListener('click', () => toast('Paquete generado (demo: usa el botón principal)', false));
-      document.getElementById('dMarkSent').addEventListener('click', () => toast('Marcada como enviada (demo)', false));
 
       function openDrawer(kind, row) {
+        drawerRow = row;
+
         dTitle.textContent = row.name || 'Estudiante';
         dSub.textContent = kind === 'rejected' ? 'Solicitud rechazada' : 'Solicitud aprobada';
         dPhoto.src = row.photoUrl || row.supabase_url || '';
@@ -886,14 +877,10 @@
         }
       }
 
-      async function generateZipForApproved() {
+      // ---- ZIP helpers ----
+      async function generateZipForDniList(dniList) {
         try {
-          const tbody = document.getElementById('suneduRows');
-          const boxes = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-dni]'));
-          const dniList = boxes.filter(b => b.checked && b.dataset.dni).map(b => b.dataset.dni);
-
           const body = { dniList };
-
           const r = await fetch('/api/admin/generate-zip', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -929,6 +916,55 @@
         }
       }
 
+      async function generateZipForApproved() {
+        const tbody = document.getElementById('suneduRows');
+        const boxes = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-dni]'));
+        const dniList = boxes.filter(b => b.checked && b.dataset.dni).map(b => b.dataset.dni);
+
+        if (!dniList.length) {
+          toast('Selecciona al menos un estudiante en SUNEDU', true);
+          return;
+        }
+        await generateZipForDniList(dniList);
+      }
+
+      // ---- SUNEDU mark-as-sent helpers ----
+      async function markSuneduSent(dniList) {
+        try {
+          if (!dniList.length) {
+            toast('Selecciona al menos un estudiante', true);
+            return;
+          }
+
+          // IMPORTANT: make sure this endpoint exists in your Node server
+          const r = await fetch('/api/admin/mark-sunedu-sent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dniList })
+          });
+
+          const ct = r.headers.get('content-type') || '';
+          let j;
+          if (ct.includes('application/json')) {
+            j = await r.json();
+          } else {
+            const text = await r.text();
+            throw new Error('Respuesta no válida del servidor: ' + text.slice(0, 120));
+          }
+
+          if (!r.ok || !j.ok) {
+            throw new Error(j.error || 'No se pudo marcar como enviado');
+          }
+
+          toast(`Se marcaron ${j.updated || dniList.length} registro(s) como Enviado`, false);
+          await loadAdminData();
+        } catch (err) {
+          console.error(err);
+          toast(err.message || 'Error marcando como enviado', true);
+        }
+      }
+
+      // ---- delete helpers ----
       async function deleteByDniList(dniList) {
         try {
           if (!dniList.length) {
@@ -1058,12 +1094,32 @@
       });
 
       document.getElementById('btnZipSunedu').addEventListener('click', generateZipForApproved);
-      document.getElementById('btnMarkSentSunedu').addEventListener('click', () =>
-        toast('Marcadas (SUNEDU) enviadas (demo)', false)
-      );
+
+      document.getElementById('btnMarkSentSunedu').addEventListener('click', () => {
+        const dniList = collectDniFromTable('suneduRows');
+        markSuneduSent(dniList);
+      });
+
       document.getElementById('btnDeleteSunedu').addEventListener('click', () => {
         const dniList = collectDniFromTable('suneduRows');
         deleteByDniList(dniList);
+      });
+
+      // drawer buttons now LIVE
+      document.getElementById('dGenerate').addEventListener('click', () => {
+        if (!drawerRow || !drawerRow.dni) {
+          toast('No se encontró DNI para este estudiante', true);
+          return;
+        }
+        generateZipForDniList([drawerRow.dni]);
+      });
+
+      document.getElementById('dMarkSent').addEventListener('click', () => {
+        if (!drawerRow || !drawerRow.dni) {
+          toast('No se encontró DNI para este estudiante', true);
+          return;
+        }
+        markSuneduSent([drawerRow.dni]);
       });
 
       // --- live search boxes ---
