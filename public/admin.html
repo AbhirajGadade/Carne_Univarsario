@@ -156,7 +156,8 @@
 
     .link {
       appearance: none;
-      width: 100%; display: flex;
+      width: 100%;
+      display: flex;
       align-items: center;
       gap: 10px;
       padding: 10px 12px;
@@ -180,8 +181,13 @@
       background: #fff0f4;
     }
 
-    .screen { display: none; }
-    .screen.active { display: block; }
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
 
     .toolbar {
       display: flex;
@@ -349,7 +355,9 @@
       flex-direction: column;
     }
 
-    #drawer.open { transform: translateX(0); }
+    #drawer.open {
+      transform: translateX(0);
+    }
 
     #drawer header {
       padding: 14px 16px;
@@ -426,7 +434,9 @@
       gap: 8px;
     }
 
-    .code-with-checkbox input { margin: 0; }
+    .code-with-checkbox input {
+      margin: 0;
+    }
   </style>
 </head>
 
@@ -858,6 +868,8 @@
             throw new Error(j.error || 'No se pudo cargar datos');
           }
 
+          console.log('Respuesta /api/admin/submissions', j); // <-- DEBUG
+
           const approved = j.data?.approved || [];
           const rejected = j.data?.rejected || [];
 
@@ -936,7 +948,6 @@
             return;
           }
 
-          // IMPORTANT: make sure this endpoint exists in your Node server
           const r = await fetch('/api/admin/mark-sunedu-sent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1193,7 +1204,7 @@
           }
         });
       }
- 
+
       loadAdminData();
     })();
   </script>
