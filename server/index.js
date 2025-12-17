@@ -1,5 +1,11 @@
-require('dotenv').config();
+// ---------- ENV + CORE IMPORTS ----------
 const path = require('path');
+
+// Load .env from project root:  <root>/.env
+require('dotenv').config({
+  path: path.join(__dirname, '..', '.env'),
+});
+
 const fs = require('fs');
 const fsp = fs.promises;
 
@@ -24,7 +30,7 @@ const {
   adminGetStudent,
   adminGetCourseSchedules,
   adminGetTeachers,
-  adminGetTeacherSchedule
+  adminGetTeacherSchedule,
 } = require('./uma');
 
 const {
@@ -33,27 +39,42 @@ const {
   VALIDATOR_URL: ENV_VALIDATOR_URL,
   UMA_DATABASE_URL,
   DATABASE_URL,
-  POSTGRES_URL
+  POSTGRES_URL,
+  SUPABASE_DB_URL,
 } = process.env;
 
 // Python validator URL (FastAPI)
 const VALIDATOR_URL = ENV_VALIDATOR_URL || 'http://127.0.0.1:8000';
 
 // ------------ Database (Supabase Postgres) ------------
-const DB_URL = UMA_DATABASE_URL || DATABASE_URL || POSTGRES_URL || '';
-const DB_ENABLED = !!DB_URL;
+const DB_URL =
+  SUPABASE_DB_URL ||
+  UMA_DATABASE_URL ||
+  DATABASE_URL ||
+  POSTGRES_URL ||
+  '';
 
+let DB_ENABLED = false;
 let pool = null;
-if (DB_ENABLED) {
+
+if (DB_URL) {
+  const safeDbUrl = DB_URL.replace(/:\/\/([^:]+):[^@]+@/, '://$1:****@');
+  console.log('[db] Using Postgres database at:', safeDbUrl);
+
   pool = new Pool({
     connectionString: DB_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false }, // required for Supabase
   });
+
   pool.on('error', (err) => {
     console.error('[db] pool error', err);
   });
+
+  DB_ENABLED = true;
 } else {
-  console.warn('[db] No database URL configured. Falling back to submissions.json only.');
+  console.warn(
+    '[db] No database URL configured. Falling back to submissions.json only.'
+  );
 }
 
 const app = express();
@@ -92,7 +113,9 @@ async function loadSubmissionsFromDb() {
     from uma_submissions
     order by updated_at desc
   `;
+
   const { rows } = await pool.query(q);
+
   return rows.map((row) => {
     const issues = Array.isArray(row.issues)
       ? row.issues
@@ -118,7 +141,7 @@ async function loadSubmissionsFromDb() {
       photo_filename: row.photo_filename,
       suneduStatus: row.sunedu_status,
       updatedAt: row.updated_at,
-      photoUrl
+      photoUrl,
     };
   });
 }
@@ -199,6 +222,7 @@ async function upsertSubmissionInDb(submission) {
       sunedu_status = excluded.sunedu_status,
       updated_at = now()
   `;
+
   const params = [
     submission.dni,
     submission.code || submission.codigo || null,
@@ -210,7 +234,7 @@ async function upsertSubmissionInDb(submission) {
     issues,
     submission.supabase_url || null,
     submission.filename || submission.photo_filename || null,
-    suneduStatus
+    suneduStatus,
   ];
 
   await pool.query(q, params);
@@ -286,7 +310,7 @@ app.use(
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { httpOnly: true, sameSite: 'lax' }
+    cookie: { httpOnly: true, sameSite: 'lax' },
   })
 );
 
@@ -316,7 +340,7 @@ app.post('/api/student/login', async (req, res) => {
       return res.status(502).json({
         ok: false,
         error: 'UMA login did not return tokens',
-        raw: root
+        raw: root,
       });
     }
 
@@ -326,7 +350,9 @@ app.post('/api/student/login', async (req, res) => {
     res.json({ ok: true, message: 'login ok' });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
-    res.status(status).json({ ok: false, error: e.response?.data || e.message });
+    res
+      .status(status)
+      .json({ ok: false, error: e.response?.data || e.message });
   }
 });
 
@@ -350,7 +376,7 @@ app.post('/api/admin/login', async (req, res) => {
       return res.status(502).json({
         ok: false,
         error: 'UMA admin login did not return token',
-        raw: root
+        raw: root,
       });
     }
 
@@ -358,7 +384,9 @@ app.post('/api/admin/login', async (req, res) => {
     res.json({ ok: true, message: 'admin login ok' });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
-    res.status(status).json({ ok: false, error: e.response?.data || e.message });
+    res
+      .status(status)
+      .json({ ok: false, error: e.response?.data || e.message });
   }
 });
 
@@ -373,7 +401,9 @@ app.post('/api/student/profile', async (req, res) => {
     res.json({ ok: true, data: r.data });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
-    res.status(status).json({ ok: false, error: e.response?.data || e.message });
+    res
+      .status(status)
+      .json({ ok: false, error: e.response?.data || e.message });
   }
 });
 
@@ -389,7 +419,9 @@ app.post('/api/student/course-schedules', async (req, res) => {
     res.json({ ok: true, data: r.data });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
-    res.status(status).json({ ok: false, error: e.response?.data || e.message });
+    res
+      .status(status)
+      .json({ ok: false, error: e.response?.data || e.message });
   }
 });
 
@@ -404,7 +436,9 @@ app.post('/api/admin/student', async (req, res) => {
     res.json({ ok: true, data: r.data });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
-    res.status(status).json({ ok: false, error: e.response?.data || e.message });
+    res
+      .status(status)
+      .json({ ok: false, error: e.response?.data || e.message });
   }
 });
 
@@ -420,7 +454,9 @@ app.post('/api/admin/course-schedules', async (req, res) => {
     res.json({ ok: true, data: r.data });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
-    res.status(status).json({ ok: false, error: e.response?.data || e.message });
+    res
+      .status(status)
+      .json({ ok: false, error: e.response?.data || e.message });
   }
 });
 
@@ -434,7 +470,9 @@ app.post('/api/admin/teachers', async (req, res) => {
     res.json({ ok: true, data: r.data });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
-    res.status(status).json({ ok: false, error: e.response?.data || e.message });
+    res
+      .status(status)
+      .json({ ok: false, error: e.response?.data || e.message });
   }
 });
 
@@ -450,7 +488,9 @@ app.post('/api/admin/teacher-schedule', async (req, res) => {
     res.json({ ok: true, data: r.data });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
-    res.status(status).json({ ok: false, error: e.response?.data || e.message });
+    res
+      .status(status)
+      .json({ ok: false, error: e.response?.data || e.message });
   }
 });
 
@@ -527,7 +567,7 @@ app.post('/validate', upload.single('image'), async (req, res) => {
     const formData = new FormData();
     formData.append('image', file.buffer, {
       filename: file.originalname,
-      contentType: file.mimetype || 'application/octet-stream'
+      contentType: file.mimetype || 'application/octet-stream',
     });
     formData.append('dni', dni);
 
@@ -538,7 +578,7 @@ app.post('/validate', upload.single('image'), async (req, res) => {
       headers: formData.getHeaders(),
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
-      validateStatus: () => true
+      validateStatus: () => true,
     });
 
     const data = response.data || {};
@@ -580,7 +620,7 @@ app.post('/validate', upload.single('image'), async (req, res) => {
         data_url: data.data_url || null,
         supabase_url: data.supabase_url || null,
         suneduStatus: 'Pendiente',
-        updatedAt: now
+        updatedAt: now,
       };
 
       if (DB_ENABLED) {
@@ -605,7 +645,7 @@ app.post('/validate', upload.single('image'), async (req, res) => {
     console.error('Validator proxy error:', err);
     res.status(500).json({
       ok: false,
-      issues: ['Validation service error: ' + err.message]
+      issues: ['Validation service error: ' + err.message],
     });
   }
 });
@@ -622,7 +662,7 @@ app.post('/fix-photo', upload.single('image'), async (req, res) => {
     const formData = new FormData();
     formData.append('image', file.buffer, {
       filename: file.originalname || 'photo.jpg',
-      contentType: file.mimetype || 'application/octet-stream'
+      contentType: file.mimetype || 'application/octet-stream',
     });
 
     const url = `${VALIDATOR_URL}/fix-photo`;
@@ -632,7 +672,7 @@ app.post('/fix-photo', upload.single('image'), async (req, res) => {
       headers: formData.getHeaders(),
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
-      validateStatus: () => true
+      validateStatus: () => true,
     });
 
     const data = response.data || {};
@@ -642,8 +682,8 @@ app.post('/fix-photo', upload.single('image'), async (req, res) => {
     res.status(500).json({
       ok: false,
       issues: [
-        'Error interno al intentar corregir la foto automáticamente.'
-      ]
+        'Error interno al intentar corregir la foto automáticamente.',
+      ],
     });
   }
 });
@@ -686,7 +726,7 @@ app.post('/api/admin/generate-zip', async (req, res) => {
     }
 
     const { zipPath, total, fileName } = await createAdminZip(selected, {
-      outDir: ZIP_OUTPUT_DIR
+      outDir: ZIP_OUTPUT_DIR,
     });
 
     const publicUrl = `/downloads/${fileName}`;
@@ -696,7 +736,7 @@ app.post('/api/admin/generate-zip', async (req, res) => {
       url: publicUrl,
       total,
       zipPath,
-      file: fileName
+      file: fileName,
     });
   } catch (err) {
     console.error('[zip] unexpected error:', err);
@@ -778,7 +818,7 @@ app.get('/health', (_req, res) => {
     ok: true,
     validator: VALIDATOR_URL,
     photosRoot: PHOTOS_ROOT,
-    dbEnabled: DB_ENABLED
+    dbEnabled: DB_ENABLED,
   });
 });
 
