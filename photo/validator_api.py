@@ -47,7 +47,7 @@ PHOTOS_DIR = os.getenv("UMA_PHOTOS_DIR", "photos")
 # background check (brightness 0-255 on grayscale)
 BORDER_PIXELS = 12           # border thickness to inspect
 WHITE_THRESHOLD = 220        # pixel >= this is considered "white"
-BACKGROUND_MIN_WHITE = 0.55  # 80% of border pixels must be white
+BACKGROUND_MIN_WHITE = 0.55  # 55% of border pixels must be white
 
 os.makedirs(os.path.join(PHOTOS_DIR, "approved"), exist_ok=True)
 os.makedirs(os.path.join(PHOTOS_DIR, "rejected"), exist_ok=True)
@@ -172,7 +172,6 @@ def passport_crop(pil_img: Image.Image) -> Image.Image:
     target_ratio = TARGET_W / TARGET_H
 
     # Use about 90% of the height if the image is tall enough.
-    # This is less aggressive than 80%, so we keep more headroom.
     crop_factor = 0.9 if h > TARGET_H * 1.2 else 1.0
     new_h = max(int(h * crop_factor), TARGET_H)
     new_w = int(new_h * target_ratio)
@@ -271,6 +270,7 @@ app.add_middleware(
 
 # Root endpoint so Render / browsers don't see 404 on "/"
 @app.get("/")
+@app.head("/")   # <--- HEAD support for uptime monitors
 def root() -> Dict[str, Any]:
     return {
         "ok": True,
@@ -284,6 +284,7 @@ def root() -> Dict[str, Any]:
 
 
 @app.get("/health")
+@app.head("/health")   # <--- HEAD support here too
 def health() -> Dict[str, Any]:
     return {
         "ok": True,
