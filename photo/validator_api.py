@@ -47,7 +47,7 @@ PHOTOS_DIR = os.getenv("UMA_PHOTOS_DIR", "photos")
 # background check (brightness 0-255 on grayscale)
 BORDER_PIXELS = 12           # border thickness to inspect
 WHITE_THRESHOLD = 210        # pixel >= this is considered "white"
-BACKGROUND_MIN_WHITE = 0.70  # 60% of border pixels must be white
+BACKGROUND_MIN_WHITE = 0.60  # 60% of border pixels must be white
 
 os.makedirs(os.path.join(PHOTOS_DIR, "approved"), exist_ok=True)
 os.makedirs(os.path.join(PHOTOS_DIR, "rejected"), exist_ok=True)
