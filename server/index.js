@@ -43,6 +43,12 @@ const {
   SUPABASE_DB_URL,
   ADMIN_EMAIL,
   ADMIN_PASS,
+  // carnet payment env vars
+  CARNET_API_URL,
+  CARNET_API_USER, // not used now, but kept for clarity
+  CARNET_API_PASS, // not used now, but kept for clarity
+  CARNET_CONCEPT_CODE,
+  CARNET_PERIOD,
 } = process.env;
 
 // Python validator URL (FastAPI)
@@ -339,6 +345,166 @@ async function callUmaWithAdminRetry(fn, args = {}) {
   }
 }
 
+// ---------- Carnet payment helper ----------
+
+// Get UMA admin access_token (Bearer) using adminLogin()
+async function getUmaAdminToken() {
+  if (!ADMIN_EMAIL || !ADMIN_PASS) {
+    console.error(
+      '[uma-admin-token] ADMIN_EMAIL or ADMIN_PASS missing in .env'
+    );
+    return null;
+  }
+
+  try {
+    const r = await adminLogin({ email: ADMIN_EMAIL, password: ADMIN_PASS });
+
+    const root = r.data || {};
+    const data = root.data || root;
+    const token = data.access_token || root.access_token || null;
+
+    if (!token) {
+      console.error(
+        '[uma-admin-token] UMA admin login did not return access_token:',
+        root
+      );
+      return null;
+    }
+
+    return token;
+  } catch (err) {
+    console.error(
+      '[uma-admin-token] UMA admin login failed:',
+      err.response?.data || err.message || err
+    );
+    return null;
+  }
+}
+
+// Calls grupoa/carnet_payments with UMA admin Bearer token and checks
+// that there is at least one row with:
+//   codAlu === codigo
+//   period === CARNET_PERIOD (if set)
+//   number_ticket not empty
+async function checkCarnetPayment({ codigo, dni }) {
+  const url = (CARNET_API_URL || '').trim();
+
+  if (!url) {
+    console.warn(
+      '[carnet] CARNET_API_URL is not configured. Skipping carnet payment check.'
+    );
+    return { allowed: true, reason: 'no_config' };
+  }
+
+  const conceptCode = (CARNET_CONCEPT_CODE || '181035').toString().trim();
+  const periodFilter = (CARNET_PERIOD || '').toString().trim() || null;
+
+  try {
+    const wantedCodigo = codigo.toString().trim();
+    const wantedDni = (dni || '').toString().trim() || null;
+
+    const body = { codigo: conceptCode };
+    if (wantedDni) body.dni = wantedDni;
+    if (periodFilter) body.period = periodFilter;
+
+    // 1) get UMA admin token
+    const adminToken = await getUmaAdminToken();
+    if (!adminToken) {
+      return {
+        allowed: false,
+        reason:
+          'No se pudo verificar el pago del carné (no se pudo obtener token de UMA).',
+      };
+    }
+
+    console.log('[carnet] POST', url, 'body =', body);
+
+    // 2) call carnet_payments with Bearer token (like Postman)
+    const resp = await axios.post(url, body, {
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
+      timeout: 15000,
+      validateStatus: () => true,
+    });
+
+    const httpStatus = resp.status;
+    const payload = resp.data || {};
+    const rows = Array.isArray(payload.data) ? payload.data : [];
+
+    console.log(
+      '[carnet] HTTP',
+      httpStatus,
+      '- received',
+      rows.length,
+      'row(s) from carnet_payments'
+    );
+
+    if (httpStatus < 200 || httpStatus >= 300) {
+      console.error(
+        '[carnet] unexpected status from carnet API:',
+        httpStatus,
+        payload
+      );
+      return {
+        allowed: false,
+        reason:
+          'No se pudo verificar el pago del carné (error en el servicio remoto).',
+        raw: payload,
+      };
+    }
+
+    const periodFilterStr = periodFilter ? periodFilter.toString().trim() : null;
+
+    const match = rows.find((row) => {
+      const codAlu = (row.codAlu || '').toString().trim();
+      const rowDni = (row.dni || '').toString().trim();
+      const ticket = (row.number_ticket || '').toString().trim();
+      const period = (row.period || '').toString().trim();
+
+      if (!ticket) return false; // must have number_ticket
+      if (codAlu !== wantedCodigo) return false; // must match student code
+      if (periodFilterStr && period !== periodFilterStr) return false;
+
+      if (wantedDni && rowDni && rowDni !== wantedDni) {
+        console.log('[carnet] codAlu match but DNI mismatch', {
+          codAlu,
+          rowDni,
+          wantedDni,
+        });
+      }
+
+      return true;
+    });
+
+    if (match) {
+      console.log('[carnet] payment match found:', match);
+      return { allowed: true, reason: 'ok', row: match, raw: payload };
+    }
+
+    console.log(
+      '[carnet] no matching payment found for codigo =',
+      wantedCodigo,
+      'dni =',
+      wantedDni
+    );
+    return {
+      allowed: false,
+      reason:
+        'No se encontró un pago válido de carné universitario para este estudiante.',
+      raw: payload,
+    };
+  } catch (err) {
+    console.error('[carnet] error calling carnet API:', err);
+    return {
+      allowed: false,
+      reason:
+        'No se pudo verificar el pago del carné. Intenta nuevamente más tarde.',
+      error: err.message || String(err),
+    };
+  }
+}
+
 // ---------- middleware ----------
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -367,6 +533,21 @@ app.post('/api/student/login', async (req, res) => {
         .json({ ok: false, error: 'codigo and dni are required' });
     }
 
+    // STEP 1: verify carnet payment first
+    const carnet = await checkCarnetPayment({ codigo, dni });
+
+    if (!carnet.allowed) {
+      // student has NOT paid (or we couldn't verify)
+      return res.status(403).json({
+        ok: false,
+        error:
+          carnet.reason ||
+          'No se encontró un pago válido de carné universitario para este estudiante.',
+        carnet,
+      });
+    }
+
+    // STEP 2: normal UMA student login
     const r = await studentLogin({ codigo, dni });
 
     const root = r.data || {};
@@ -385,7 +566,16 @@ app.post('/api/student/login', async (req, res) => {
     setStudentAccessToken(req.session, access);
     setStudentRefreshToken(req.session, refresh);
 
-    res.json({ ok: true, message: 'login ok' });
+    // Everything OK: carnet payment + UMA login
+    res.json({
+      ok: true,
+      message: 'login ok',
+      carnet: {
+        ok: true,
+        reason: carnet.reason || 'ok',
+        row: carnet.row || null,
+      },
+    });
   } catch (e) {
     const status = e.response?.status || e.status || 500;
     res
@@ -516,7 +706,6 @@ app.post('/api/admin/teachers', async (req, res) => {
     if (!period) {
       return res.status(400).json({ ok: false, error: 'period is required' });
     }
-
     const r = await callUmaWithAdminRetry(adminGetTeachers, { period });
     res.json({ ok: true, data: r.data });
   } catch (e) {
@@ -535,7 +724,6 @@ app.post('/api/admin/teacher-schedule', async (req, res) => {
         .status(400)
         .json({ ok: false, error: 'dni and period are required' });
     }
-
     const r = await callUmaWithAdminRetry(adminGetTeacherSchedule, {
       dni,
       period,
