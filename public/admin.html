@@ -43,7 +43,7 @@
       padding:0 16px;
     }
 
-    /* ===== HEADER (keeps desktop as-is, mobile becomes like student portal) ===== */
+    /* ===== HEADER ===== */
     .header{
       display:flex;
       align-items:center;
@@ -111,7 +111,7 @@
       font-size:12px;
     }
 
-    /* Mobile-only logout in header (student portal style) */
+    /* Mobile-only logout in header */
     .header-logout-btn{
       display:none; /* desktop hidden */
       align-items:center;
@@ -394,6 +394,7 @@
     /* ===== MOBILE =====
        - Header like student portal (stacked)
        - Nav becomes student-portal top-nav style (NOT scrollable)
+       - Tabs truncate with ellipsis (no long buttons)
        - Tables become side-scrollable
        - Desktop stays unchanged
     */
@@ -417,14 +418,13 @@
       }
 
       .brand img{
-        height:64px; /* like student portal */
+        height:64px;
       }
 
       .brand h1{
         font-size:1.5rem;
       }
 
-      /* right side */
       .header-right{
         justify-content:center;
         width:100%;
@@ -450,7 +450,7 @@
         box-shadow:none;
       }
 
-      /* STUDENT-PORTAL TOP NAV LOOK (no scroll) */
+      /* top-nav look */
       .nav{
         display:flex;
         flex-wrap:wrap;           /* ✅ no scroll */
@@ -463,28 +463,35 @@
         overflow-x:hidden;        /* ✅ guarantee not scrollable */
       }
 
-      .section{ display:none; }   /* like student portal (no section titles) */
+      .section{ display:none; }
 
-      /* tabs like student portal buttons */
+      /* ✅ tabs like student portal + truncate long text */
       .link{
-        flex: 1 1 calc(50% - 10px);  /* 2 per row */
-        min-width:0;                 /* ✅ prevents overflow */
+        flex: 1 1 calc(50% - 10px);
+        min-width:0;
         margin:0;
         border:none;
         background:transparent;
         border-radius:999px;
         padding:10px 12px;
-        font-size:0.95rem;
+        font-size:0.92rem;
         font-weight:600;
         color: var(--muted);
         justify-content:center;
         text-align:center;
         gap:8px;
-        white-space:normal;          /* ✅ allow wrap inside button */
-        line-height:1.15;
+
+        /* ✅ prevent long labels from breaking layout */
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
       }
 
-      .link i{ font-size:1rem; color:inherit; }
+      .link i{
+        flex:0 0 auto;
+        font-size:1rem;
+        color:inherit;
+      }
 
       .link:hover{
         background:#fff5f7;
@@ -498,7 +505,7 @@
         box-shadow: var(--shadow-hover);
       }
 
-      /* make SUNEDU button full width (looks clean with 3 tabs) */
+      /* SUNEDU full width */
       .link[data-route="sunedu"]{
         flex-basis:100%;
       }
@@ -554,17 +561,17 @@
         <nav class="nav" id="sideNav">
           <div class="section">GESTIÓN</div>
 
-          <button type="button" class="link" data-route="approved">
+          <button type="button" class="link" data-route="approved" title="Solicitudes Aprobadas">
             <i class="fas fa-circle-check"></i> Solicitudes Aprobadas
           </button>
 
-          <button type="button" class="link" data-route="rejected">
+          <button type="button" class="link" data-route="rejected" title="Solicitudes Rechazadas">
             <i class="fas fa-circle-xmark"></i> Solicitudes Rechazadas
           </button>
 
           <div class="section">SUNEDU</div>
 
-          <button type="button" class="link" data-route="sunedu">
+          <button type="button" class="link" data-route="sunedu" title="Envíos y Paquetes">
             <i class="fas fa-box-archive"></i> Envíos y Paquetes
           </button>
 
@@ -1199,15 +1206,9 @@
       const searchRejected = document.querySelector('#route-rejected .search');
       const searchSunedu = document.querySelector('#route-sunedu .search');
 
-      if (searchApproved) {
-        searchApproved.addEventListener('input', (e) => { currentFilters.approved = e.target.value; applyFilter('approved'); });
-      }
-      if (searchRejected) {
-        searchRejected.addEventListener('input', (e) => { currentFilters.rejected = e.target.value; applyFilter('rejected'); });
-      }
-      if (searchSunedu) {
-        searchSunedu.addEventListener('input', (e) => { currentFilters.sunedu = e.target.value; applyFilter('sunedu'); });
-      }
+      if (searchApproved) searchApproved.addEventListener('input', (e) => { currentFilters.approved = e.target.value; applyFilter('approved'); });
+      if (searchRejected) searchRejected.addEventListener('input', (e) => { currentFilters.rejected = e.target.value; applyFilter('rejected'); });
+      if (searchSunedu) searchSunedu.addEventListener('input', (e) => { currentFilters.sunedu = e.target.value; applyFilter('sunedu'); });
 
       const selectAllApproved = document.getElementById('selectAllApproved');
       if (selectAllApproved) {
