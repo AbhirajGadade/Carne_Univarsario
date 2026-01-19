@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,550 +9,529 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    :root {
-      --primary: #f02454;
-      --primary-light: #ff6090;
-      --primary-dark: #b0003a;
+    :root{
+      --primary:#f02454;
+      --primary-light:#ff6090;
+      --primary-dark:#b0003a;
 
-      --outline: #ffc2d0;
-      --ring: #ffd3dd;
+      --outline:#ffc2d0;
+      --ring:#ffd3dd;
 
-      --muted: #6b7280;
-      --text: #0f172a;
+      --muted:#6b7280;
+      --text:#0f172a;
 
-      --card: #ffffff;
-      --shadow: 0 4px 12px rgba(240, 36, 84, 0.08);
-      --shadow-hover: 0 8px 24px rgba(240, 36, 84, 0.12);
+      --card:#ffffff;
+      --shadow:0 4px 12px rgba(240,36,84,.08);
+      --shadow-hover:0 8px 24px rgba(240,36,84,.12);
 
-      --radius: 12px;
-      --radius-lg: 16px;
+      --radius:12px;
+      --radius-lg:16px;
     }
 
-    * { box-sizing: border-box; }
+    *{ box-sizing:border-box; }
 
-    body {
-      margin: 0;
-      background: radial-gradient(circle at top left, #ffe3ee 0, #fffdfd 45%, #ffe3ee 100%);
-      color: var(--text);
-      font: 14px/1.55 "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    body{
+      margin:0;
+      background: radial-gradient(circle at top left,#ffe3ee 0,#fffdfd 45%,#ffe3ee 100%);
+      color:var(--text);
+      font:14px/1.55 "Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
     }
 
-    .container {
-      max-width: 1280px;
-      margin: 24px auto;
-      padding: 0 16px;
+    .container{
+      max-width:1280px;
+      margin:24px auto;
+      padding:0 16px;
     }
 
-    /* ===== HEADER (Student-portal style) ===== */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      background: var(--card);
-      padding: 16px 20px;
-      border-radius: var(--radius-lg);
+    /* ===== HEADER (keeps desktop as-is, mobile becomes like student portal) ===== */
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background:#fff;
+      border:1px solid #ffe3ea;
+      border-radius:16px;
+      padding:12px 14px;
       box-shadow: var(--shadow);
-      border: 1px solid #ffe6ee;
-      margin-bottom: 16px;
+      margin-bottom:16px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      min-width: 0;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
     }
 
-    .brand-logo-img {
-      height: 64px;
-      width: auto;
-      object-fit: contain;
-      background: transparent;
-      box-shadow: none;
+    .brand img{
+      height:36px;
+      width:auto;
+      object-fit:contain;
     }
 
-    .brand-text { min-width: 0; }
-
-    .brand-text h1 {
-      margin: 0 0 4px 0;
-      font-size: 1.55rem;
-      line-height: 1.15;
-      color: var(--text);
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
     }
 
-    .brand-text p {
-      margin: 0;
-      color: var(--primary);
-      font-size: 1rem;
-      font-weight: 500;
+    .muted{ color:var(--muted); font-size:13px; }
+
+    .header-right{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
     }
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
+    .session-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 18px;
+      border-radius:999px;
+      background:#fff0f4;
+      border:1px solid #ffe0ea;
+      font-size:14px;
+      color:#111827;
+      white-space:nowrap;
     }
 
-    .session-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 18px;
-      border-radius: 999px;
-      background: #f3f4f6;
-      font-size: 14px;
-      color: #111827;
-      white-space: nowrap;
-      border: 1px solid #eef2f7;
+    .session-icon{
+      width:22px;
+      height:22px;
+      border-radius:999px;
+      background:var(--primary);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      font-size:12px;
     }
 
-    .session-icon {
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      background: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      font-size: 12px;
-    }
-
-    /* Mobile-only logout in header */
-    .header-logout-btn {
-      display: none; /* hidden on desktop */
-      align-items: center;
-      gap: 8px;
-      border-radius: 999px;
-      border: none;
-      padding: 8px 16px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      background: linear-gradient(135deg, var(--primary-light), var(--primary));
-      color: #fff;
+    /* Mobile-only logout in header (student portal style) */
+    .header-logout-btn{
+      display:none; /* desktop hidden */
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      border:none;
+      border-radius:999px;
+      padding:8px 16px;
+      font-size:.95rem;
+      font-weight:700;
+      cursor:pointer;
+      background: linear-gradient(135deg,var(--primary-light),var(--primary));
+      color:#fff;
       box-shadow: var(--shadow-hover);
-      white-space: nowrap;
+      white-space:nowrap;
     }
-    .header-logout-btn:hover { filter: brightness(1.03); }
+    .header-logout-btn:hover{ filter:brightness(1.03); }
 
-    /* ===== APP LAYOUT ===== */
-    .app {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 18px;
+    /* ===== APP LAYOUT (desktop) ===== */
+    .app{
+      display:grid;
+      grid-template-columns:260px 1fr;
+      gap:18px;
     }
 
-    .card {
-      background: var(--card);
-      border: 1px solid #ffe3ea;
-      border-radius: 16px;
+    .card{
+      background:var(--card);
+      border:1px solid #ffe3ea;
+      border-radius:16px;
       box-shadow: var(--shadow);
     }
 
-    .pad { padding: 16px; }
+    .pad{ padding:16px; }
 
-    .nav { padding: 10px; }
+    .nav{ padding:10px; }
 
-    .section {
-      font-weight: 800;
-      font-size: 12px;
-      color: #4b5563;
-      letter-spacing: .06em;
-      margin: 8px 8px 6px;
+    .section{
+      font-weight:800;
+      font-size:12px;
+      color:#4b5563;
+      letter-spacing:.06em;
+      margin:8px 8px 6px;
     }
 
-    .link {
-      appearance: none;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      margin: 6px 0;
-      border-radius: 12px;
-      color: #0f172a;
-      border: 1px solid transparent;
-      cursor: pointer;
-      background: #fff;
-      text-align: left;
+    .link{
+      appearance:none;
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      margin:6px 0;
+      border-radius:12px;
+      color:#0f172a;
+      border:1px solid transparent;
+      cursor:pointer;
+      background:#fff;
+      text-align:left;
+      justify-content:flex-start;
+      font-weight:700;
     }
 
-    .link:hover {
-      background: #fff5f7;
-      border-color: #ffe3ea;
+    .link i{ color:var(--primary); }
+
+    .link:hover{
+      background:#fff5f7;
+      border-color:#ffe3ea;
     }
 
-    .link.active {
-      outline: 3px solid var(--ring);
-      border-color: var(--outline);
-      background: #fff0f4;
+    .link.active{
+      outline:3px solid var(--ring);
+      border-color:var(--outline);
+      background:#fff0f4;
     }
 
-    .screen { display: none; }
-    .screen.active { display: block; }
+    .screen{ display:none; }
+    .screen.active{ display:block; }
 
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
+    .toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
     }
 
-    .toolbar-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
+    .toolbar-left{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex:1;
     }
 
-    .search {
-      flex: 1;
-      border-radius: 999px;
-      border: 1px solid #ffe0ea;
-      padding: 8px 12px;
-      font-size: 13px;
-      background: #fff;
+    .search{
+      flex:1;
+      border-radius:999px;
+      border:1px solid #ffe0ea;
+      padding:8px 12px;
+      font-size:13px;
+      background:#fff;
     }
 
-    .btn {
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid #f02454;
-      background: linear-gradient(180deg, #f76385, #f02454);
-      color: #fff;
-      font-weight: 700;
-      font-size: 13px;
-      box-shadow: 0 8px 20px rgba(240, 36, 84, .18);
+    .btn{
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid #f02454;
+      background: linear-gradient(180deg,#f76385,#f02454);
+      color:#fff;
+      font-weight:700;
+      font-size:13px;
+      box-shadow:0 8px 20px rgba(240,36,84,.18);
     }
 
-    .btn.ghost {
-      background: transparent;
-      color: var(--primary);
-      border-color: #ffe0e7;
-      box-shadow: none;
+    .btn.ghost{
+      background:transparent;
+      color:var(--primary);
+      border-color:#ffe0e7;
+      box-shadow:none;
     }
 
-    .btn-danger {
-      background: #f44336;
-      border-color: #f44336;
-      color: #fff;
-      box-shadow: 0 8px 20px rgba(244, 67, 54, 0.25);
+    .btn-danger{
+      background:#f44336;
+      border-color:#f44336;
+      color:#fff;
+      box-shadow:0 8px 20px rgba(244,67,54,0.25);
     }
+    .btn-danger:hover{ background:#d32f2f; border-color:#d32f2f; }
 
-    .btn-danger:hover {
-      background: #d32f2f;
-      border-color: #d32f2f;
-    }
-
-    .btn:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 13px;
-    }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
 
     /* ===== TABLES ===== */
-    .table-scroll {
-      width: 100%;
-      overflow: visible; /* desktop unchanged */
+    .table-scroll{ width:100%; overflow:visible; } /* desktop unchanged */
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 8px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 8px;
+    thead th{
+      padding:8px 10px;
+      text-align:left;
+      color:#475569;
+      font-size:12px;
     }
 
-    thead th {
-      padding: 8px 10px;
-      text-align: left;
-      color: #475569;
-      font-size: 12px;
+    tbody tr{ background:#fff; border:1px solid #fce4ec; }
+
+    tbody td{
+      padding:8px 10px;
+      border-top:1px solid #fde7f0;
+      border-bottom:1px solid #fde7f0;
+      font-size:13px;
     }
 
-    tbody tr {
-      background: #ffffff;
-      border: 1px solid #fce4ec;
+    tbody td:first-child{
+      border-left:1px solid #fde7f0;
+      border-radius:10px 0 0 10px;
     }
 
-    tbody td {
-      padding: 8px 10px;
-      border-top: 1px solid #fde7f0;
-      border-bottom: 1px solid #fde7f0;
-      font-size: 13px;
+    tbody td:last-child{
+      border-right:1px solid #fde7f0;
+      border-radius:0 10px 10px 0;
     }
 
-    tbody td:first-child {
-      border-left: 1px solid #fde7f0;
-      border-radius: 10px 0 0 10px;
+    .empty{ padding:16px; text-align:center; color:#9ca3af; }
+
+    .status-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:2px 8px;
+      font-size:11px;
+      border-radius:999px;
+      font-weight:600;
     }
 
-    tbody td:last-child {
-      border-right: 1px solid #fde7f0;
-      border-radius: 0 10px 10px 0;
+    .status-approved{ background:#ecfdf5; color:#065f46; border:1px solid #bbf7d0; }
+    .status-rejected{ background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+    .status-pending{ background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+
+    #toast{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      z-index:9999;
     }
 
-    .empty {
-      padding: 16px;
-      text-align: center;
-      color: #9ca3af;
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-weight:700;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--outline);
+      background:#fff;
     }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2px 8px;
-      font-size: 11px;
-      border-radius: 999px;
-      font-weight: 600;
-    }
-
-    .status-approved {
-      background: #ecfdf5;
-      color: #065f46;
-      border: 1px solid #bbf7d0;
-    }
-
-    .status-rejected {
-      background: #fef2f2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-    }
-
-    .status-pending {
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
-    }
-
-    #toast {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      z-index: 9999;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 700;
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--outline);
-      background: #fff;
-    }
-
-    .pill.info {
-      color: #a31231;
-      background: #fff5f7;
-    }
+    .pill.info{ color:#a31231; background:#fff5f7; }
 
     /* Drawer */
-    #drawer {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 360px;
-      max-width: 100%;
-      height: 100%;
-      background: #fff;
-      border-left: 1px solid #ffe0ea;
-      box-shadow: -10px 0 40px rgba(15, 23, 42, .2);
-      transform: translateX(100%);
-      transition: transform .25s ease;
-      z-index: 9998;
-      display: flex;
-      flex-direction: column;
+    #drawer{
+      position:fixed;
+      top:0;
+      right:0;
+      width:360px;
+      max-width:100%;
+      height:100%;
+      background:#fff;
+      border-left:1px solid #ffe0ea;
+      box-shadow:-10px 0 40px rgba(15,23,42,.2);
+      transform:translateX(100%);
+      transition:transform .25s ease;
+      z-index:9998;
+      display:flex;
+      flex-direction:column;
+    }
+    #drawer.open{ transform:translateX(0); }
+    #drawer header{
+      padding:14px 16px;
+      border-bottom:1px solid #fef0f4;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    #drawer main{ padding:16px; overflow-y:auto; flex:1; }
+    #drawer footer{
+      padding:12px 16px;
+      border-top:1px solid #fef0f4;
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    #drawer img{
+      width:140px;
+      height:180px;
+      object-fit:cover;
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+    }
+    .drawer-grid{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:12px;
+    }
+    .drawer-meta{ font-size:13px; display:grid; gap:4px; }
+    .drawer-label{
+      font-size:11px;
+      text-transform:uppercase;
+      color:#6b7280;
+      letter-spacing:.06em;
+      font-weight:700;
+    }
+    .drawer-value{ font-size:13px; word-break:break-all; }
+    .closeBtn{
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      padding:4px 10px;
+      font-size:12px;
+      cursor:pointer;
+      background:#fff;
     }
 
-    #drawer.open { transform: translateX(0); }
+    .code-with-checkbox{ display:inline-flex; align-items:center; gap:8px; }
+    .code-with-checkbox input{ margin:0; }
 
-    #drawer header {
-      padding: 14px 16px;
-      border-bottom: 1px solid #fef0f4;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
+    /* ===== MOBILE =====
+       - Header like student portal (stacked)
+       - Nav becomes student-portal top-nav style (NOT scrollable)
+       - Tables become side-scrollable
+       - Desktop stays unchanged
+    */
+    @media (max-width: 768px), (hover:none) and (pointer:coarse){
+      body{ overflow-x:hidden; }
+      .container{ margin:14px auto; padding:0 12px; }
 
-    #drawer main {
-      padding: 16px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    #drawer footer {
-      padding: 12px 16px;
-      border-top: 1px solid #fef0f4;
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    #drawer img {
-      width: 140px;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-    }
-
-    .drawer-grid {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 12px;
-    }
-
-    .drawer-meta {
-      font-size: 13px;
-      display: grid;
-      gap: 4px;
-    }
-
-    .drawer-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      color: #6b7280;
-      letter-spacing: .06em;
-      font-weight: 700;
-    }
-
-    .drawer-value {
-      font-size: 13px;
-      word-break: break-all;
-    }
-
-    .closeBtn {
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-      padding: 4px 10px;
-      font-size: 12px;
-      cursor: pointer;
-      background: #fff;
-    }
-
-    /* Código + checkbox inline */
-    .code-with-checkbox {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .code-with-checkbox input { margin: 0; }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 900px) {
-      .app { grid-template-columns: 1fr; }
-    }
-
-    /* IMPORTANT: applies on phones even when CSS width is >768 */
-    @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-      body { overflow-x: hidden; }
-      .container { margin: 16px auto; padding: 0 12px; }
-
-      /* Header like Student portal */
-      .header {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
+      /* header like student portal */
+      .header{
+        flex-direction:column;
+        gap:10px;
+        text-align:center;
+        padding:16px 18px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
       }
 
-      .brand { flex-direction: column; gap: 10px; }
-      .header-right { justify-content: center; width: 100%; }
-
-      /* Show header logout only on mobile */
-      .header-logout-btn {
-        display: inline-flex;
-        width: 100%;
-        max-width: 260px;
-        justify-content: center;
+      .brand{
+        flex-direction:column;
+        gap:10px;
       }
 
-      /* Hide sidebar logout on mobile to avoid double logout */
-      .link[data-route="logout"] { display: none !important; }
-
-      /* Sidebar becomes a horizontal, swipeable tab bar */
-      .nav {
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        padding: 10px;
-      }
-      .nav::-webkit-scrollbar { display: none; }
-      .nav { scrollbar-width: none; }
-
-      /* Hide section headings (GESTIÓN / SUNEDU / SISTEMA) */
-      .section { display: none; }
-
-      .link {
-        flex: 0 0 auto;
-        margin: 0;
-        white-space: nowrap;
-        border-radius: 999px;
-        padding: 10px 12px;
+      .brand img{
+        height:64px; /* like student portal */
       }
 
-      /* Toolbars wrap */
-      .toolbar-left { flex-wrap: wrap; }
-      .search { min-width: 220px; }
-
-      /* Make tables horizontally scrollable on mobile */
-      .table-scroll {
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        width: 100%;
+      .brand h1{
+        font-size:1.5rem;
       }
 
-      /* Keep columns in one line so horizontal scroll works cleanly */
-      .table-scroll th,
-      .table-scroll td {
-        white-space: nowrap;
+      /* right side */
+      .header-right{
+        justify-content:center;
+        width:100%;
+        gap:8px;
       }
 
-      /* Ensure table is wider than phone so it scrolls (no off-screen page) */
-      .table-scroll table {
-        min-width: 1100px;
+      .header-logout-btn{
+        display:inline-flex;
+        width:100%;
+        max-width:260px;
       }
+
+      /* stack layout */
+      .app{
+        grid-template-columns:1fr;
+        gap:14px;
+      }
+
+      /* make sidebar card look like top-nav container */
+      aside.card{
+        background:transparent;
+        border:none;
+        box-shadow:none;
+      }
+
+      /* STUDENT-PORTAL TOP NAV LOOK (no scroll) */
+      .nav{
+        display:flex;
+        flex-wrap:wrap;           /* ✅ no scroll */
+        gap:10px;
+        background:#fff;
+        padding:8px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border:1px solid #ffe3ea;
+        overflow-x:hidden;        /* ✅ guarantee not scrollable */
+      }
+
+      .section{ display:none; }   /* like student portal (no section titles) */
+
+      /* tabs like student portal buttons */
+      .link{
+        flex: 1 1 calc(50% - 10px);  /* 2 per row */
+        min-width:0;                 /* ✅ prevents overflow */
+        margin:0;
+        border:none;
+        background:transparent;
+        border-radius:999px;
+        padding:10px 12px;
+        font-size:0.95rem;
+        font-weight:600;
+        color: var(--muted);
+        justify-content:center;
+        text-align:center;
+        gap:8px;
+        white-space:normal;          /* ✅ allow wrap inside button */
+        line-height:1.15;
+      }
+
+      .link i{ font-size:1rem; color:inherit; }
+
+      .link:hover{
+        background:#fff5f7;
+        color: var(--primary-dark);
+      }
+
+      .link.active{
+        outline:none;
+        background: linear-gradient(135deg,var(--primary-light),var(--primary));
+        color:#fff;
+        box-shadow: var(--shadow-hover);
+      }
+
+      /* make SUNEDU button full width (looks clean with 3 tabs) */
+      .link[data-route="sunedu"]{
+        flex-basis:100%;
+      }
+
+      /* hide sidebar logout on mobile (logout is in header) */
+      .link[data-route="logout"]{ display:none; }
+
+      /* toolbars wrap */
+      .toolbar-left{ flex-wrap:wrap; }
+      .search{ min-width:200px; }
+
+      /* tables scroll horizontally on mobile */
+      .table-scroll{
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        width:100%;
+      }
+      .table-scroll th, .table-scroll td{ white-space:nowrap; }
+      .table-scroll table{ min-width:1100px; }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-
-    <!-- Header (student-portal style) -->
+    <!-- Header -->
     <div class="header">
       <div class="brand">
-        <img src="assets/images/logo-pdf.png" alt="UMA" class="brand-logo-img" />
-        <div class="brand-text">
+        <img src="assets/images/logo-pdf.png" alt="UMA" />
+        <div>
           <h1>Panel Administrativo UMA</h1>
-          <p>Gestión de solicitudes y fotos</p>
+          <div class="muted">Gestión de solicitudes y fotos</div>
         </div>
       </div>
 
@@ -575,15 +553,27 @@
       <aside class="card">
         <nav class="nav" id="sideNav">
           <div class="section">GESTIÓN</div>
-          <button type="button" class="link" data-route="approved">Solicitudes Aprobadas</button>
-          <button type="button" class="link" data-route="rejected">Solicitudes Rechazadas</button>
+
+          <button type="button" class="link" data-route="approved">
+            <i class="fas fa-circle-check"></i> Solicitudes Aprobadas
+          </button>
+
+          <button type="button" class="link" data-route="rejected">
+            <i class="fas fa-circle-xmark"></i> Solicitudes Rechazadas
+          </button>
 
           <div class="section">SUNEDU</div>
-          <button type="button" class="link" data-route="sunedu">Envíos y Paquetes</button>
+
+          <button type="button" class="link" data-route="sunedu">
+            <i class="fas fa-box-archive"></i> Envíos y Paquetes
+          </button>
 
           <div class="section">SISTEMA</div>
-          <!-- Desktop logout (hidden on mobile by CSS) -->
-          <button type="button" class="link" data-route="logout">Cerrar sesión</button>
+
+          <!-- Desktop logout (hidden on mobile) -->
+          <button type="button" class="link" data-route="logout">
+            <i class="fas fa-right-from-bracket"></i> Cerrar sesión
+          </button>
         </nav>
       </aside>
 
@@ -708,26 +698,15 @@
       </div>
       <button id="closeDrawer" class="closeBtn" type="button">Cerrar</button>
     </header>
-
     <main>
       <div class="drawer-grid">
         <img id="dPhoto" alt="Foto" />
         <div class="drawer-meta">
-          <div>
-            <span class="drawer-label">IA</span>
-            <div id="dAI" class="drawer-value"></div>
-          </div>
-          <div>
-            <span class="drawer-label">SUNEDU</span>
-            <div id="dSunedu" class="drawer-value"></div>
-          </div>
-          <div>
-            <span class="drawer-label">Actualizado</span>
-            <div id="dUpdated" class="drawer-value"></div>
-          </div>
+          <div><span class="drawer-label">IA</span><div id="dAI" class="drawer-value"></div></div>
+          <div><span class="drawer-label">SUNEDU</span><div id="dSunedu" class="drawer-value"></div></div>
+          <div><span class="drawer-label">Actualizado</span><div id="dUpdated" class="drawer-value"></div></div>
         </div>
       </div>
-
       <div class="drawer-meta">
         <div><span class="drawer-label">Código</span><div id="dCode" class="drawer-value">—</div></div>
         <div><span class="drawer-label">Nombre</span><div id="dName" class="drawer-value">—</div></div>
@@ -738,7 +717,6 @@
         <div><span class="drawer-label">URL Supabase</span><div id="dSupabase" class="drawer-value">—</div></div>
       </div>
     </main>
-
     <footer>
       <button id="dGenerate" class="btn" type="button">Generar ZIP</button>
       <button id="dMarkSent" class="btn ghost" type="button">Marcar como Enviado</button>
@@ -796,13 +774,13 @@
       document.getElementById('sideNav').addEventListener('click', (e) => {
         const btn = e.target.closest('button.link');
         if (!btn) return;
+
         if (btn.dataset.route === 'logout') {
           doLogout();
           return;
         }
         goto(btn.dataset.route);
       });
-
       goto('approved');
 
       // Drawer refs
@@ -826,12 +804,10 @@
       function getPhotoUrl(row) {
         if (row.photoUrl) return row.photoUrl;
         if (row.supabase_url) return row.supabase_url;
-
         if (row.relative_path) {
           const p = String(row.relative_path);
           return p.startsWith('/') ? p : '/' + p;
         }
-
         if (row.dni) return '/photos/approved/' + row.dni + '.jpg';
         return '';
       }
@@ -847,7 +823,6 @@
         dPhoto.alt = 'Foto';
 
         const ok = row.category === 'approved';
-
         dAI.textContent = ok ? 'Aprobada por IA' : 'Rechazada por IA';
         dAI.className = 'status-badge ' + (ok ? 'status-approved' : 'status-rejected');
 
@@ -1013,6 +988,7 @@
 
           const approved = j.data?.approved || [];
           const rejected = j.data?.rejected || [];
+
           const sunedu = approved.map((row, i) => ({
             ...row,
             codigo: row.code || row.codigo || ('A' + (i + 1))
@@ -1066,13 +1042,17 @@
         const tbody = document.getElementById('suneduRows');
         const boxes = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-dni]'));
         const dniList = boxes.filter(b => b.checked && b.dataset.dni).map(b => b.dataset.dni);
-        if (!dniList.length) return toast('Selecciona al menos un estudiante en SUNEDU', true);
+
+        if (!dniList.length) {
+          toast('Selecciona al menos un estudiante en SUNEDU', true);
+          return;
+        }
         await generateZipForDniList(dniList);
       }
 
       async function markSuneduSent(dniList) {
         try {
-          if (!dniList.length) return toast('Selecciona al menos un estudiante', true);
+          if (!dniList.length) { toast('Selecciona al menos un estudiante', true); return; }
 
           const r = await fetch('/api/admin/mark-sunedu-sent', {
             method: 'POST',
@@ -1100,7 +1080,7 @@
 
       async function deleteByDniList(dniList) {
         try {
-          if (!dniList.length) return toast('Selecciona al menos un estudiante', true);
+          if (!dniList.length) { toast('Selecciona al menos un estudiante', true); return; }
           if (!confirm('¿Eliminar las solicitudes seleccionadas? Esta acción no se puede deshacer.')) return;
 
           const r = await fetch('/api/admin/delete-submissions', {
@@ -1152,9 +1132,9 @@
 
       function exportApprovedToCSV() {
         const rows = datasets.approved || [];
-        if (!rows.length) return toast('No hay solicitudes aprobadas para exportar', true);
+        if (!rows.length) { toast('No hay solicitudes aprobadas para exportar', true); return; }
 
-        const header = ['Código', 'DNI', 'Nombre', 'Correo', 'FACULTAD', 'CARRERA', 'Supabase URL'];
+        const header = ['Código','DNI','Nombre','Correo','FACULTAD','CARRERA','Supabase URL'];
         const csvLines = [header.join(',')];
 
         rows.forEach((r) => {
@@ -1166,20 +1146,20 @@
           const carrera = r.carrera || r.esp || '';
           const supabase = r.supabase_url || getPhotoUrl(r) || '';
 
-          const values = [code, dni, name, email, facultad, carrera, supabase].map(v =>
-            '"' + String(v ?? '').replace(/"/g, '""') + '"'
+          const values = [code,dni,name,email,facultad,carrera,supabase].map(v =>
+            '"' + String(v ?? '').replace(/"/g,'""') + '"'
           );
           csvLines.push(values.join(','));
         });
 
-        const blob = new Blob(['\uFEFF' + csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csvLines.join('\n')], { type:'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
 
         const now = new Date();
         const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const d = String(now.getDate()).padStart(2, '0');
+        const m = String(now.getMonth()+1).padStart(2,'0');
+        const d = String(now.getDate()).padStart(2,'0');
 
         a.href = url;
         a.download = `uma_solicitudes_aprobadas_${y}${m}${d}.csv`;
@@ -1206,12 +1186,12 @@
       });
 
       document.getElementById('dGenerate').addEventListener('click', () => {
-        if (!drawerRow || !drawerRow.dni) return toast('No se encontró DNI para este estudiante', true);
+        if (!drawerRow || !drawerRow.dni) { toast('No se encontró DNI para este estudiante', true); return; }
         generateZipForDniList([drawerRow.dni]);
       });
 
       document.getElementById('dMarkSent').addEventListener('click', () => {
-        if (!drawerRow || !drawerRow.dni) return toast('No se encontró DNI para este estudiante', true);
+        if (!drawerRow || !drawerRow.dni) { toast('No se encontró DNI para este estudiante', true); return; }
         markSuneduSent([drawerRow.dni]);
       });
 
@@ -1220,22 +1200,13 @@
       const searchSunedu = document.querySelector('#route-sunedu .search');
 
       if (searchApproved) {
-        searchApproved.addEventListener('input', (e) => {
-          currentFilters.approved = e.target.value;
-          applyFilter('approved');
-        });
+        searchApproved.addEventListener('input', (e) => { currentFilters.approved = e.target.value; applyFilter('approved'); });
       }
       if (searchRejected) {
-        searchRejected.addEventListener('input', (e) => {
-          currentFilters.rejected = e.target.value;
-          applyFilter('rejected');
-        });
+        searchRejected.addEventListener('input', (e) => { currentFilters.rejected = e.target.value; applyFilter('rejected'); });
       }
       if (searchSunedu) {
-        searchSunedu.addEventListener('input', (e) => {
-          currentFilters.sunedu = e.target.value;
-          applyFilter('sunedu');
-        });
+        searchSunedu.addEventListener('input', (e) => { currentFilters.sunedu = e.target.value; applyFilter('sunedu'); });
       }
 
       const selectAllApproved = document.getElementById('selectAllApproved');
@@ -1278,5 +1249,4 @@
     })();
   </script>
 </body>
-
 </html>
