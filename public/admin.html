@@ -211,6 +211,8 @@
       align-items:center;
       gap:8px;
       flex:1;
+      min-width:0;
+      flex-wrap:wrap;
     }
 
     .search{
@@ -220,7 +222,7 @@
       padding:8px 12px;
       font-size:13px;
       background:#fff;
-      min-width:0;
+      min-width:240px;
     }
 
     .btn{
@@ -238,6 +240,7 @@
       font-size:13px;
       box-shadow:0 8px 20px rgba(240,36,84,.18);
       white-space:nowrap;
+      user-select:none;
     }
 
     .btn.ghost{
@@ -255,7 +258,17 @@
     }
     .btn-danger:hover{ background:#d32f2f; border-color:#d32f2f; }
 
-    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    /* ✅ NEW: button loading style */
+    .btn.loading{
+      opacity:.9;
+      pointer-events:none;
+      filter:saturate(.95);
+    }
+    .btn.loading i{
+      animation: spin 0.9s linear infinite;
+    }
 
     /* ===== TABLES ===== */
     .table-scroll{
@@ -371,14 +384,85 @@
       justify-content:space-between;
       gap:8px;
     }
-    #drawer img{
+
+    /* ===== Drawer photo loading overlay ===== */
+    .photo-wrap{
       width:140px;
       height:180px;
-      object-fit:cover;
       border-radius:12px;
       border:1px solid #e5e7eb;
       background:#f9fafb;
+      overflow:hidden;
+      position:relative;
+      flex:0 0 auto;
     }
+
+    .photo-wrap img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      opacity:1;
+      transition:opacity .18s ease;
+    }
+
+    .photo-skeleton{
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg, #f2f4f8 0%, #e9edf5 45%, #f2f4f8 90%);
+      background-size: 220% 100%;
+      animation: shimmer 1.1s infinite linear;
+      display:none;
+    }
+
+    .photo-spinner{
+      position:absolute;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      font-size:24px;
+      color: var(--primary);
+      background: rgba(255,255,255,.55);
+      backdrop-filter: blur(2px);
+    }
+
+    .photo-fallback{
+      position:absolute;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:10px;
+      color:#6b7280;
+      font-weight:700;
+      font-size:12px;
+      background:#f9fafb;
+    }
+
+    .photo-wrap.loading .photo-skeleton,
+    .photo-wrap.loading .photo-spinner{
+      display:flex;
+    }
+
+    .photo-wrap.error .photo-fallback{
+      display:flex;
+    }
+
+    @keyframes shimmer{
+      0%{ background-position: 200% 0; }
+      100%{ background-position: -200% 0; }
+    }
+
+    @keyframes spin{
+      to{ transform: rotate(360deg); }
+    }
+
+    .photo-spinner i{
+      animation: spin 0.9s linear infinite;
+    }
+
     .drawer-grid{
       display:grid;
       grid-template-columns:auto 1fr;
@@ -407,16 +491,11 @@
     .code-with-checkbox{ display:inline-flex; align-items:center; gap:8px; }
     .code-with-checkbox input{ margin:0; }
 
-    /* ===== MOBILE =====
-       - Tabs NOT scrollable
-       - Tabs SHORT (like student portal) so they don't become long
-       - DATA (tables) scroll horizontally
-    */
+    /* ===== MOBILE ===== */
     @media (max-width: 768px), (hover:none) and (pointer:coarse){
       body{ overflow-x:hidden; }
       .container{ margin:14px auto; padding:0 12px; }
 
-      /* header like student portal */
       .header{
         flex-direction:column;
         gap:10px;
@@ -432,7 +511,6 @@
       }
 
       .brand img{ height:64px; }
-
       .brand h1{ font-size:1.5rem; }
 
       .header-right{
@@ -447,20 +525,17 @@
         max-width:260px;
       }
 
-      /* stack layout */
       .app{
         grid-template-columns:1fr;
         gap:14px;
       }
 
-      /* make sidebar look like top-nav container */
       aside.card{
         background:transparent;
         border:none;
         box-shadow:none;
       }
 
-      /* TOP NAV LOOK (NOT SCROLLABLE) */
       .nav{
         display:flex;
         flex-wrap:wrap;
@@ -470,16 +545,14 @@
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow);
         border:1px solid #ffe3ea;
-        overflow:hidden; /* ✅ no scroll */
+        overflow:hidden; /* no scroll */
       }
 
       .section{ display:none; }
 
-      /* show short labels on mobile */
       .label-long{ display:none; }
       .label-short{ display:inline; }
 
-      /* tabs like student portal pills (short, 3 across) */
       .link{
         flex: 1 1 calc(33.333% - 10px);
         min-width:0;
@@ -495,7 +568,6 @@
         text-align:center;
         gap:8px;
 
-        /* keep it compact */
         white-space:nowrap;
         overflow:hidden;
         text-overflow:ellipsis;
@@ -519,14 +591,11 @@
         box-shadow: var(--shadow-hover);
       }
 
-      /* hide sidebar logout on mobile (logout is in header) */
       .link[data-route="logout"]{ display:none; }
 
-      /* toolbars wrap */
-      .toolbar-left{ flex-wrap:wrap; }
       .search{ min-width:200px; }
 
-      /* ✅ DATA scrolls, NOT tabs */
+      /* data scrolls, NOT tabs */
       .table-scroll{
         overflow-x:auto;
         overflow-y:hidden;
@@ -537,7 +606,6 @@
       .table-scroll th, .table-scroll td{ white-space:nowrap; }
       .table-scroll table{ min-width:1100px; }
 
-      /* stop table from making the whole card overflow */
       section.card.pad{ overflow:hidden; }
     }
   </style>
@@ -726,15 +794,23 @@
       </div>
       <button id="closeDrawer" class="closeBtn" type="button">Cerrar</button>
     </header>
+
     <main>
       <div class="drawer-grid">
-        <img id="dPhoto" alt="Foto" />
+        <div class="photo-wrap" id="photoWrap">
+          <div class="photo-skeleton"></div>
+          <div class="photo-spinner"><i class="fa-solid fa-spinner"></i></div>
+          <div class="photo-fallback" id="photoFallback">Cargando foto…</div>
+          <img id="dPhoto" alt="Foto" />
+        </div>
+
         <div class="drawer-meta">
           <div><span class="drawer-label">IA</span><div id="dAI" class="drawer-value"></div></div>
           <div><span class="drawer-label">SUNEDU</span><div id="dSunedu" class="drawer-value"></div></div>
           <div><span class="drawer-label">Actualizado</span><div id="dUpdated" class="drawer-value"></div></div>
         </div>
       </div>
+
       <div class="drawer-meta">
         <div><span class="drawer-label">Código</span><div id="dCode" class="drawer-value">—</div></div>
         <div><span class="drawer-label">Nombre</span><div id="dName" class="drawer-value">—</div></div>
@@ -745,6 +821,7 @@
         <div><span class="drawer-label">URL Supabase</span><div id="dSupabase" class="drawer-value">—</div></div>
       </div>
     </main>
+
     <footer>
       <button id="dGenerate" class="btn" type="button">Generar ZIP</button>
       <button id="dMarkSent" class="btn ghost" type="button">Marcar como Enviado</button>
@@ -769,6 +846,24 @@
       function doLogout() {
         localStorage.clear();
         location.replace('index.html');
+      }
+
+      // ✅ NEW: button loading helper
+      function setBtnLoading(btn, on, loadingText) {
+        if (!btn) return;
+        if (on) {
+          if (!btn.dataset.origHtml) btn.dataset.origHtml = btn.innerHTML;
+          if (!btn.dataset.origDisabled) btn.dataset.origDisabled = btn.disabled ? '1' : '0';
+          btn.classList.add('loading');
+          btn.disabled = true;
+          const text = loadingText || 'Procesando…';
+          btn.innerHTML = `<i class="fa-solid fa-spinner"></i> ${text}`;
+        } else {
+          btn.classList.remove('loading');
+          if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
+          btn.disabled = (btn.dataset.origDisabled === '1');
+          delete btn.dataset.origDisabled;
+        }
       }
 
       // Mobile header logout
@@ -816,6 +911,9 @@
       const dTitle = document.getElementById('dTitle');
       const dSub = document.getElementById('dSub');
       const dPhoto = document.getElementById('dPhoto');
+      const photoWrap = document.getElementById('photoWrap');
+      const photoFallback = document.getElementById('photoFallback');
+
       const dAI = document.getElementById('dAI');
       const dSunedu = document.getElementById('dSunedu');
       const dName = document.getElementById('dName');
@@ -840,6 +938,27 @@
         return '';
       }
 
+      function setPhotoLoadingState(isLoading) {
+        photoWrap.classList.remove('error');
+        if (isLoading) {
+          photoWrap.classList.add('loading');
+          dPhoto.style.opacity = '0';
+          photoFallback.textContent = 'Cargando foto…';
+          photoFallback.style.display = 'none';
+        } else {
+          photoWrap.classList.remove('loading');
+          dPhoto.style.opacity = '1';
+        }
+      }
+
+      function setPhotoErrorState(message) {
+        photoWrap.classList.remove('loading');
+        photoWrap.classList.add('error');
+        dPhoto.style.opacity = '0';
+        dPhoto.src = '';
+        photoFallback.textContent = message || 'No se pudo cargar la foto';
+      }
+
       function openDrawer(kind, row) {
         drawerRow = row;
 
@@ -847,10 +966,21 @@
         dSub.textContent = kind === 'rejected' ? 'Solicitud rechazada' : 'Solicitud aprobada';
 
         const photoUrl = getPhotoUrl(row);
-        dPhoto.src = photoUrl || '';
-        dPhoto.alt = 'Foto';
+
+        setPhotoLoadingState(true);
+        dPhoto.onload = null;
+        dPhoto.onerror = null;
+
+        if (!photoUrl) {
+          setPhotoErrorState('Sin foto disponible');
+        } else {
+          dPhoto.onload = () => setPhotoLoadingState(false);
+          dPhoto.onerror = () => setPhotoErrorState('No se pudo cargar la foto');
+          dPhoto.src = photoUrl;
+        }
 
         const ok = row.category === 'approved';
+
         dAI.textContent = ok ? 'Aprobada por IA' : 'Rechazada por IA';
         dAI.className = 'status-badge ' + (ok ? 'status-approved' : 'status-rejected');
 
@@ -1063,6 +1193,7 @@
         } catch (err) {
           console.error(err);
           toast(err.message || 'Error generando ZIP', true);
+          throw err;
         }
       }
 
@@ -1103,6 +1234,7 @@
         } catch (err) {
           console.error(err);
           toast(err.message || 'Error marcando como enviado', true);
+          throw err;
         }
       }
 
@@ -1132,6 +1264,7 @@
         } catch (err) {
           console.error(err);
           toast(err.message || 'Error eliminando registros', true);
+          throw err;
         }
       }
 
@@ -1197,30 +1330,63 @@
         URL.revokeObjectURL(url);
       }
 
-      document.getElementById('exportCSV').addEventListener('click', exportApprovedToCSV);
-
-      document.getElementById('btnDelete').addEventListener('click', () => {
-        deleteByDniList(collectDniFromTable('approvedRows'));
+      // ✅ UPDATED: buttons now change on click
+      const exportBtn = document.getElementById('exportCSV');
+      exportBtn.addEventListener('click', async () => {
+        setBtnLoading(exportBtn, true, 'Exportando…');
+        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 20))); // allow UI paint
+        try { exportApprovedToCSV(); }
+        finally { setBtnLoading(exportBtn, false); }
       });
 
-      document.getElementById('btnZipSunedu').addEventListener('click', generateZipForApproved);
-
-      document.getElementById('btnMarkSentSunedu').addEventListener('click', () => {
-        markSuneduSent(collectDniFromTable('suneduRows'));
+      const btnDelete = document.getElementById('btnDelete');
+      btnDelete.addEventListener('click', async () => {
+        setBtnLoading(btnDelete, true, 'Eliminando…');
+        try { await deleteByDniList(collectDniFromTable('approvedRows')); }
+        finally { setBtnLoading(btnDelete, false); }
       });
 
-      document.getElementById('btnDeleteSunedu').addEventListener('click', () => {
-        deleteByDniList(collectDniFromTable('suneduRows'));
+      const btnZipSunedu = document.getElementById('btnZipSunedu');
+      btnZipSunedu.addEventListener('click', async () => {
+        setBtnLoading(btnZipSunedu, true, 'Generando…');
+        try { await generateZipForApproved(); }
+        finally { setBtnLoading(btnZipSunedu, false); }
       });
 
-      document.getElementById('dGenerate').addEventListener('click', () => {
-        if (!drawerRow || !drawerRow.dni) { toast('No se encontró DNI para este estudiante', true); return; }
-        generateZipForDniList([drawerRow.dni]);
+      const btnMarkSentSunedu = document.getElementById('btnMarkSentSunedu');
+      btnMarkSentSunedu.addEventListener('click', async () => {
+        setBtnLoading(btnMarkSentSunedu, true, 'Marcando…');
+        try { await markSuneduSent(collectDniFromTable('suneduRows')); }
+        finally { setBtnLoading(btnMarkSentSunedu, false); }
       });
 
-      document.getElementById('dMarkSent').addEventListener('click', () => {
-        if (!drawerRow || !drawerRow.dni) { toast('No se encontró DNI para este estudiante', true); return; }
-        markSuneduSent([drawerRow.dni]);
+      const btnDeleteSunedu = document.getElementById('btnDeleteSunedu');
+      btnDeleteSunedu.addEventListener('click', async () => {
+        setBtnLoading(btnDeleteSunedu, true, 'Eliminando…');
+        try { await deleteByDniList(collectDniFromTable('suneduRows')); }
+        finally { setBtnLoading(btnDeleteSunedu, false); }
+      });
+
+      const dGenerate = document.getElementById('dGenerate');
+      dGenerate.addEventListener('click', async () => {
+        setBtnLoading(dGenerate, true, 'Generando…');
+        try {
+          if (!drawerRow || !drawerRow.dni) { toast('No se encontró DNI para este estudiante', true); return; }
+          await generateZipForDniList([drawerRow.dni]);
+        } finally {
+          setBtnLoading(dGenerate, false);
+        }
+      });
+
+      const dMarkSent = document.getElementById('dMarkSent');
+      dMarkSent.addEventListener('click', async () => {
+        setBtnLoading(dMarkSent, true, 'Marcando…');
+        try {
+          if (!drawerRow || !drawerRow.dni) { toast('No se encontró DNI para este estudiante', true); return; }
+          await markSuneduSent([drawerRow.dni]);
+        } finally {
+          setBtnLoading(dMarkSent, false);
+        }
       });
 
       const searchApproved = document.querySelector('#route-approved .search');

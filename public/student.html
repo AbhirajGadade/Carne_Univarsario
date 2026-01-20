@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>UMA — Portal del Estudiante</title>
 
-    <!-- Lottie loader script -->
-    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js" type="module"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
@@ -41,28 +38,38 @@
             padding: 20px;
         }
 
-        /* Blur portal while loading */
-        body.loading .container {
-            filter: blur(4px);
-            pointer-events: none;
-        }
-
         .container {
             max-width: 1280px;
             margin: 0 auto;
         }
 
-        /* LOADER OVERLAY */
+        /* ===== LOADER (like login) ===== */
+        body.loading .container {
+            filter: blur(4px);
+            pointer-events: none;
+            user-select: none;
+        }
+
         #loader {
             position: fixed;
             inset: 0;
-            background: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9998;
+
+            /* ✅ NO white background */
+            background:
+                radial-gradient(circle at top left, rgba(255, 96, 144, .22), rgba(255,255,255,0) 55%),
+                radial-gradient(circle at bottom right, rgba(240, 36, 84, .18), rgba(255,255,255,0) 55%),
+                rgba(15, 23, 42, 0.10);
+
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+
             transition: opacity .25s ease, visibility .25s ease;
-            backdrop-filter: blur(4px);
+            opacity: 1;
+            visibility: visible;
         }
 
         #loader.hidden {
@@ -70,16 +77,61 @@
             visibility: hidden;
         }
 
-        .loader-inner {
-            display: grid;
-            gap: 12px;
-            justify-items: center;
-            text-align: center;
+        .loaderLogoWrap {
+            width: 128px;
+            height: 128px;
+            border-radius: 999px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .loader-text {
-            font-weight: 700;
-            color: var(--text);
+        /* spinning ring */
+        .loaderLogoWrap::before {
+            content: "";
+            position: absolute;
+            inset: -10px;
+            border-radius: 999px;
+            border: 3px solid rgba(240, 36, 84, 0.20);
+            border-top-color: rgba(240, 36, 84, 0.85);
+            border-right-color: rgba(255, 96, 144, 0.55);
+            animation: spin 0.9s linear infinite;
+        }
+
+        /* soft pulse */
+        .loaderLogoWrap::after {
+            content: "";
+            position: absolute;
+            inset: -22px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(240,36,84,.20), rgba(255,255,255,0) 62%);
+            animation: pulse 1.2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .loaderLogo {
+            width: 84px;
+            height: 84px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 22px rgba(240, 36, 84, 0.25));
+            animation: floaty 1.2s ease-in-out infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.95); opacity: 0.65; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        @keyframes floaty {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .loaderLogoWrap::before,
+            .loaderLogoWrap::after,
+            .loaderLogo { animation: none; }
         }
 
         /* Header */
@@ -186,7 +238,7 @@
         /* Top Nav */
         .top-nav {
             display: flex;
-            flex-wrap: wrap; /* desktop/tablet can wrap if needed */
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
             background: var(--card);
@@ -227,21 +279,11 @@
             color: var(--primary-dark);
         }
 
-        /* logout button INSIDE nav (desktop only; hidden on mobile) */
-        .nav-logout {
-            flex: 0 0 auto;
-        }
+        .nav-logout { flex: 0 0 auto; }
 
-        /* Screens */
-        .screen {
-            display: none;
-        }
+        .screen { display: none; }
+        .screen.active { display: block; }
 
-        .screen.active {
-            display: block;
-        }
-
-        /* Main Grid (Dashboard) */
         .main-grid {
             display: grid;
             grid-template-columns: 1.2fr 1fr;
@@ -249,12 +291,9 @@
         }
 
         @media (max-width: 1000px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
+            .main-grid { grid-template-columns: 1fr; }
         }
 
-        /* Cards */
         .card {
             background: var(--card);
             border-radius: var(--radius-lg);
@@ -264,13 +303,9 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .card:hover {
-            box-shadow: var(--shadow-hover);
-        }
+        .card:hover { box-shadow: var(--shadow-hover); }
 
-        .card-header {
-            padding: 18px 20px 0;
-        }
+        .card-header { padding: 18px 20px 0; }
 
         .card-title {
             font-size: 1.2rem;
@@ -293,11 +328,8 @@
             border-radius: 8px;
         }
 
-        .card-body {
-            padding: 0 20px 18px;
-        }
+        .card-body { padding: 0 20px 18px; }
 
-        /* Progress Section */
         .progress-header {
             display: flex;
             justify-content: space-between;
@@ -395,7 +427,6 @@
             font-weight: 600;
         }
 
-        /* Profile Section */
         .profile-header {
             display: flex;
             align-items: flex-start;
@@ -420,9 +451,7 @@
             box-shadow: 0 4px 10px rgba(240, 36, 84, 0.3);
         }
 
-        .profile-info {
-            flex: 1;
-        }
+        .profile-info { flex: 1; }
 
         .profile-name {
             font-size: 1.2rem;
@@ -437,7 +466,6 @@
             margin-bottom: 6px;
         }
 
-        /* PROFILE CARDS */
         .profile-details-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -481,7 +509,6 @@
             word-break: break-word;
         }
 
-        /* Form section */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -500,8 +527,7 @@
             color: #374151;
         }
 
-        .input,
-        select {
+        .input, select {
             width: 100%;
             background: #fff;
             border: 1px solid #e5e7eb;
@@ -511,8 +537,7 @@
             outline: none;
         }
 
-        .input:focus,
-        select:focus {
+        .input:focus, select:focus {
             border-color: var(--outline);
             outline: 2px solid var(--ring);
         }
@@ -546,12 +571,8 @@
             box-shadow: none;
         }
 
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* Photo upload */
         .upload {
             border: 2px dashed var(--outline);
             background: #fff5f7;
@@ -562,14 +583,8 @@
             transition: all 0.2s ease;
         }
 
-        .upload.dragover {
-            background: #ffecef;
-        }
-
-        .upload.locked {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        .upload.dragover { background: #ffecef; }
+        .upload.locked { opacity: 0.6; cursor: not-allowed; }
 
         .preview {
             display: grid;
@@ -610,11 +625,8 @@
             white-space: pre-wrap;
         }
 
-        /* --------- MOBILE (≤768px) --------- */
         @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
+            body { padding: 12px; }
 
             .header {
                 flex-direction: column;
@@ -622,16 +634,13 @@
                 text-align: center;
             }
 
-            .brand {
-                flex-direction: column;
-            }
+            .brand { flex-direction: column; }
 
             .header-right {
                 justify-content: center;
                 gap: 8px;
             }
 
-            /* ✅ on small screens: show header logout, hide nav logout */
             .header-logout-btn {
                 display: inline-flex;
                 width: 100%;
@@ -639,66 +648,43 @@
                 justify-content: center;
             }
 
-            .nav-logout {
-                display: none !important;
-            }
+            .nav-logout { display: none !important; }
 
-            /* ✅ FORCE TAB BAR TO STAY IN ONE LINE (scroll instead of wrap) */
             .top-nav {
-                flex-wrap: nowrap;              /* no second row */
-                justify-content: flex-start;    /* better for scroll */
-                overflow-x: auto;               /* horizontal scroll */
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                overflow-x: auto;
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
                 gap: 8px;
             }
 
             .top-nav button {
-                flex: 0 0 auto;                 /* don't stretch -> prevents wrap */
-                white-space: nowrap;            /* keep text in one line */
+                flex: 0 0 auto;
+                white-space: nowrap;
             }
 
-            /* hide scrollbar but still scroll */
             .top-nav::-webkit-scrollbar { display: none; }
             .top-nav { scrollbar-width: none; }
 
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
+            .main-grid { grid-template-columns: 1fr; }
 
-            .profile-header {
-                flex-direction: column;
-                text-align: left;
-            }
+            .profile-header { flex-direction: column; text-align: left; }
 
-            .preview {
-                grid-template-columns: 1fr;
-            }
+            .preview { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 480px) {
-            .header-logout-btn {
-                padding: 8px 12px;
-            }
-
-            .top-nav button {
-                padding: 9px 10px;
-                font-size: 0.9rem;
-            }
+            .header-logout-btn { padding: 8px 12px; }
+            .top-nav button { padding: 9px 10px; font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Loader overlay -->
-    <div id="loader">
-        <div class="loader-inner">
-            <dotlottie-wc
-                src="https://lottie.host/025cadf8-218c-478b-b333-ce2f491b8805/NtPOItH00c.lottie"
-                style="width: 260px;height: 260px"
-                autoplay
-                loop>
-            </dotlottie-wc>
-            <div class="loader-text">Cargando tu portal…</div>
+    <!-- ✅ Loader overlay (logo only, no white bg) -->
+    <div id="loader" aria-busy="true" aria-live="polite">
+        <div class="loaderLogoWrap">
+            <img src="assets/images/logo-pdf.png" alt="UMA" class="loaderLogo">
         </div>
     </div>
 
@@ -717,7 +703,6 @@
                     <div class="session-icon"><i class="fas fa-user"></i></div>
                     <span>Conectado</span>
                 </div>
-                <!-- Header logout (only visible on small screens) -->
                 <button type="button" class="header-logout-btn" id="logoutBtnHeader">
                     <i class="fas fa-right-from-bracket"></i>
                     <span class="logout-text">Cerrar sesión</span>
@@ -736,7 +721,6 @@
             <button type="button" class="nav-link" data-route="photo">
                 <i class="fas fa-id-card"></i> Cargar foto
             </button>
-            <!-- Nav logout (desktop only; hidden on mobile via CSS) -->
             <button type="button" class="nav-link nav-logout" data-logout="1" id="logoutBtnNav">
                 <i class="fas fa-right-from-bracket"></i> Cerrar sesión
             </button>
@@ -747,7 +731,6 @@
             <!-- DASHBOARD -->
             <section id="route-dashboard" class="screen active">
                 <div class="main-grid">
-                    <!-- Progreso -->
                     <div class="card">
                         <div class="card-header">
                             <div class="progress-header">
@@ -764,7 +747,6 @@
                         </div>
                     </div>
 
-                    <!-- Perfil -->
                     <div class="card">
                         <div class="card-header">
                             <h2 class="card-title">
@@ -780,7 +762,6 @@
                                 </div>
                             </div>
 
-                            <!-- Cards -->
                             <div class="profile-details-grid">
                                 <div class="profile-field">
                                     <div class="profile-field-label">CÓDIGO</div>
@@ -825,48 +806,19 @@
                             <div class="form-grid">
                                 <div class="field">
                                     <label for="name_profile">👤 Nombre</label>
-                                    <input
-                                        id="name_profile"
-                                        name="name"
-                                        type="text"
-                                        class="input"
-                                        readonly
-                                        placeholder="—"
-                                        autocomplete="name"
-                                    >
+                                    <input id="name_profile" name="name" type="text" class="input" readonly placeholder="—" autocomplete="name">
                                 </div>
                                 <div class="field">
                                     <label for="email_profile">✉️ Correo</label>
-                                    <input
-                                        id="email_profile"
-                                        name="email"
-                                        type="email"
-                                        class="input"
-                                        readonly
-                                        placeholder="—"
-                                        autocomplete="email"
-                                    >
+                                    <input id="email_profile" name="email" type="email" class="input" readonly placeholder="—" autocomplete="email">
                                 </div>
                                 <div class="field">
                                     <label for="codigo_profile">🔖 Código</label>
-                                    <input
-                                        id="codigo_profile"
-                                        name="student_code"
-                                        type="text"
-                                        class="input"
-                                        readonly
-                                        placeholder="—"
-                                        autocomplete="off"
-                                    >
+                                    <input id="codigo_profile" name="student_code" type="text" class="input" readonly placeholder="—" autocomplete="off">
                                 </div>
                                 <div class="field">
                                     <label for="program">🎓 Programa / Especialidad</label>
-                                    <select
-                                        id="program"
-                                        name="program"
-                                        required
-                                        autocomplete="off"
-                                    >
+                                    <select id="program" name="program" required autocomplete="off">
                                         <option value="">Selecciona…</option>
                                         <option>FARMACIA Y BIOQUÍMICA</option>
                                         <option>ENFERMERÍA</option>
@@ -880,47 +832,22 @@
                                 </div>
                                 <div class="field">
                                     <label for="doc">🆔 Número de documento (DNI)</label>
-                                    <input
-                                        id="doc"
-                                        name="dni"
-                                        type="text"
-                                        class="input"
-                                        placeholder="12345678"
-                                        required
-                                        autocomplete="off"
-                                    >
+                                    <input id="doc" name="dni" type="text" class="input" placeholder="12345678" required autocomplete="off">
                                 </div>
                                 <div class="field">
                                     <label for="gender_profile">⚧ Género</label>
-                                    <input
-                                        id="gender_profile"
-                                        name="gender"
-                                        type="text"
-                                        class="input"
-                                        readonly
-                                        placeholder="—"
-                                        autocomplete="sex"
-                                    >
+                                    <input id="gender_profile" name="gender" type="text" class="input" readonly placeholder="—" autocomplete="sex">
                                 </div>
                                 <div class="field">
                                     <label for="phone">📞 Teléfono</label>
-                                    <input
-                                        id="phone"
-                                        name="phone"
-                                        type="tel"
-                                        class="input"
-                                        placeholder="+51 999 999 999"
-                                        autocomplete="tel"
-                                    >
+                                    <input id="phone" name="phone" type="tel" class="input" placeholder="+51 999 999 999" autocomplete="tel">
                                 </div>
                             </div>
                             <div class="btn-row">
                                 <button class="btn" type="submit">
                                     <i class="fas fa-floppy-disk"></i> Guardar
                                 </button>
-                                <span id="saved" style="font-size:13px;color:var(--muted);display:none">
-                                    Guardado ✓
-                                </span>
+                                <span id="saved" style="font-size:13px;color:var(--muted);display:none">Guardado ✓</span>
                             </div>
                         </form>
                     </div>
@@ -964,8 +891,7 @@
                                 <i class="fas fa-cloud-upload-alt"></i> Guardar foto
                             </button>
 
-                            <!-- AI auto-fix button -->
-                            <button id="aiPhoto" type="button" class="btn secondary">
+                            <button id="aiPhoto" type="button" class="btn secondary" disabled>
                                 <i class="fas fa-wand-magic-sparkles"></i> Arreglar con IA
                             </button>
 
@@ -989,52 +915,43 @@
         const logoutBtnNav = document.getElementById('logoutBtnNav');
         const topNav = document.getElementById('topNav');
 
-        function hideLoader() {
-            if (loader) loader.classList.add('hidden');
-            document.body.classList.remove('loading');
+        function showLoader() {
+            document.body.classList.add('loading');
+            if (loader) loader.classList.remove('hidden');
         }
 
-        // central logout function used by both buttons
+        function hideLoader() {
+            document.body.classList.remove('loading');
+            if (loader) loader.classList.add('hidden');
+        }
+
         function doLogout() {
             localStorage.clear();
-            hideLoader();
             location.replace('index.html');
         }
 
-        // start in loading mode
-        document.body.classList.add('loading');
+        showLoader();
 
-        // ---- GET STUDENT CODE ----
         const urlParams = new URLSearchParams(location.search);
-        let code =
-            urlParams.get('code') ||
-            urlParams.get('codigo') ||
-            '';
+        let code = urlParams.get('code') || urlParams.get('codigo') || '';
 
         const codeKeys = ['uma_codigo', 'codigo', 'uma_student_code', 'student_code'];
 
         if (!code) {
             for (const k of codeKeys) {
                 const v = localStorage.getItem(k);
-                if (v) {
-                    code = v;
-                    break;
-                }
+                if (v) { code = v; break; }
             }
         }
+        if (code) codeKeys.forEach(k => localStorage.setItem(k, code));
 
-        // Remember code in all known keys for future visits
-        if (code) {
-            codeKeys.forEach(k => localStorage.setItem(k, code));
-        }
-
-        if (!localStorage.getItem('uma_session_role')) {
+        const role = localStorage.getItem('uma_session_role');
+        if (role !== 'student') {
             hideLoader();
             location.replace('index.html');
             return;
         }
 
-        // Header connection pill
         if (code) {
             sessionChip.innerHTML = `
                 <div class="session-icon"><i class="fas fa-user"></i></div>
@@ -1047,13 +964,11 @@
             `;
         }
 
-        // Attach logout to both header + nav buttons
         if (logoutBtnHeader) logoutBtnHeader.addEventListener('click', doLogout);
         if (logoutBtnNav) logoutBtnNav.addEventListener('click', doLogout);
 
         function goto(route) {
             document.querySelectorAll('.nav-link').forEach(b => {
-                // only toggle active for buttons that navigate (have data-route)
                 if (b.dataset.route === route) b.classList.add('active');
                 else if (b.dataset.route) b.classList.remove('active');
             });
@@ -1066,10 +981,7 @@
         topNav.addEventListener('click', (e) => {
             const btn = e.target.closest('button');
             if (!btn) return;
-            if (btn.dataset.logout === '1') {
-                doLogout();
-                return;
-            }
+            if (btn.dataset.logout === '1') { doLogout(); return; }
             const route = btn.dataset.route;
             if (route) goto(route);
         });
@@ -1090,7 +1002,187 @@
             return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         }
 
-        // ------------- LOAD PROFILE (USES /api/student/profile) -------------
+        // ===== Progress storage (per student) =====
+        const BASE_FORM_KEY = 'uma_form_saved';
+        const BASE_PHOTO_KEY = 'uma_photo_ok';
+
+        function perStudentKey(base) {
+            return code ? `${base}_${code}` : base;
+        }
+
+        function getFlag(base) {
+            return localStorage.getItem(perStudentKey(base)) === '1' || localStorage.getItem(base) === '1';
+        }
+
+        function setFlag(base, on) {
+            if (on) {
+                localStorage.setItem(base, '1');                 // legacy
+                if (code) localStorage.setItem(perStudentKey(base), '1'); // per-student
+            } else {
+                localStorage.removeItem(base);
+                if (code) localStorage.removeItem(perStudentKey(base));
+            }
+        }
+
+        async function postJsonMaybe(url, payload, timeoutMs = 2000) {
+            const ac = new AbortController();
+            const t = setTimeout(() => ac.abort(), timeoutMs);
+            try {
+                const r = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload || {}),
+                    signal: ac.signal
+                });
+                const ct = r.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) return null;
+                const j = await r.json();
+                if (!r.ok) return null;
+                return j;
+            } catch (e) {
+                return null;
+            } finally {
+                clearTimeout(t);
+            }
+        }
+
+        async function headExists(url, timeoutMs = 1500) {
+            const ac = new AbortController();
+            const t = setTimeout(() => ac.abort(), timeoutMs);
+            try {
+                const r = await fetch(url, { method: 'HEAD', cache: 'no-store', signal: ac.signal });
+                return r.ok;
+            } catch (e) {
+                return false;
+            } finally {
+                clearTimeout(t);
+            }
+        }
+
+        function extractProgress(any) {
+            const root = any?.data ?? any?.result ?? any ?? {};
+            const cand =
+                root.progress ||
+                root.status ||
+                root.submission ||
+                root.application ||
+                root.form ||
+                root.data ||
+                root;
+
+            let formDone = Boolean(
+                cand?.formDone ?? cand?.form_done ??
+                cand?.formSaved ?? cand?.form_saved ??
+                cand?.formComplete ?? cand?.form_complete ??
+                cand?.hasForm ?? cand?.has_form ??
+                cand?.exists ?? cand?.submissionExists
+            );
+
+            let photoDone = Boolean(
+                cand?.photoDone ?? cand?.photo_done ??
+                cand?.photoOk ?? cand?.photo_ok ??
+                cand?.hasPhoto ?? cand?.has_photo ??
+                cand?.photoUrl ?? cand?.photo_url ??
+                cand?.supabase_url ?? cand?.image_url ?? cand?.relative_path
+            );
+
+            const looksLikeSubmission =
+                !!(cand && (cand.dni || cand.codigo || cand.code || cand.email) && (cand.name || cand.nombre));
+            if (!formDone && looksLikeSubmission) formDone = true;
+
+            // ✅ FORCE ORDER: if photo is done, form must be done too
+            if (photoDone) formDone = true;
+
+            return { formDone, photoDone };
+        }
+
+        async function syncProgressFromServer(dni) {
+            const endpoints = [
+                '/api/student/progress',
+                '/api/student/status',
+                '/api/student/submission',
+                '/api/student/application',
+                '/api/student/submissions/me'
+            ];
+
+            let server = null;
+            for (const ep of endpoints) {
+                const j = await postJsonMaybe(ep, { code, dni });
+                if (!j) continue;
+                if (j.ok === false) continue;
+                server = j;
+                break;
+            }
+
+            if (server) {
+                const p = extractProgress(server);
+                if (p.formDone) setFlag(BASE_FORM_KEY, true);
+                if (p.photoDone) {
+                    setFlag(BASE_PHOTO_KEY, true);
+                    setFlag(BASE_FORM_KEY, true); // ✅ keep consistent
+                }
+                renderProgress();
+                return;
+            }
+
+            // Fallback: if approved photo exists, mark photo + form as done
+            if (dni) {
+                const ok = await headExists(`/photos/approved/${encodeURIComponent(dni)}.jpg`);
+                if (ok) {
+                    setFlag(BASE_PHOTO_KEY, true);
+                    setFlag(BASE_FORM_KEY, true); // ✅ keep consistent
+                    renderProgress();
+                }
+            }
+        }
+
+        function renderProgress() {
+            const stepsEl = document.getElementById('steps');
+            const progressStatus = document.getElementById('progressStatusText');
+
+            const rawFormDone = getFlag(BASE_FORM_KEY);
+            const rawPhotoDone = getFlag(BASE_PHOTO_KEY);
+
+            // ✅ FORCE ORDER
+            const photoDone = rawPhotoDone;
+            const formDone = rawFormDone || rawPhotoDone;
+
+            if (rawPhotoDone && !rawFormDone) setFlag(BASE_FORM_KEY, true);
+
+            const titles = ['Iniciaste sesión', 'Completa tu formulario', 'Sube tu foto'];
+
+            const states = ['done', 'todo', 'todo'];
+            if (formDone) states[1] = 'done';
+            if (photoDone) states[2] = 'done';
+
+            let firstTodo = states.findIndex(s => s === 'todo');
+            if (firstTodo === -1) firstTodo = states.length - 1;
+            if (states[firstTodo] !== 'done') states[firstTodo] = 'current';
+
+            const completed = states.filter(s => s === 'done').length;
+            const percent = Math.round((completed / states.length) * 100);
+            progressStatus.textContent = percent + '% completado';
+
+            let html = '<div class="stepper-line-fill" id="progressLine"></div>';
+            for (let i = 0; i < states.length; i++) {
+                const cls = states[i] === 'done' ? 'step-item done'
+                          : states[i] === 'current' ? 'step-item current'
+                          : 'step-item';
+                html += `
+                    <div class="${cls}">
+                        <div class="step-circle">${i + 1}</div>
+                        <div class="step-title-h">${titles[i]}</div>
+                    </div>`;
+            }
+            stepsEl.innerHTML = html;
+
+            const line = document.getElementById('progressLine');
+            let fillPercent = 0;
+            if (completed > 1) fillPercent = ((completed - 1) / (states.length - 1)) * 100;
+            if (line) line.style.width = fillPercent + '%';
+        }
+
         async function loadProfile() {
             if (!code) {
                 hideLoader();
@@ -1108,22 +1200,13 @@
 
                 const text = await r.text();
                 const j = text ? JSON.parse(text) : {};
-                console.log('Perfil de estudiante /api/student/profile =>', j);
 
                 if (!r.ok || !j.ok) {
-                    throw new Error(
-                        (j && j.error && (j.error.message || j.error)) ||
-                        'No se pudo obtener el perfil'
-                    );
+                    throw new Error((j && j.error && (j.error.message || j.error)) || 'No se pudo obtener el perfil');
                 }
 
                 const root = j.data || j;
-                const s =
-                    root.data ||
-                    root.student ||
-                    root.alumno ||
-                    root ||
-                    {};
+                const s = root.data || root.student || root.alumno || root || {};
 
                 const firstName = s.name || s.nombres || s.nombre || '';
                 const lastName =
@@ -1141,14 +1224,12 @@
                 const faculty = s.facultad || s.faculty || s.facultyName || s.facultadNombre || '—';
                 const career = s.carrera || s.especialidad || s.specialtyName || s.schoolName || '—';
 
-                // Profile card header
                 document.getElementById('pname').textContent = fullName;
                 document.getElementById('pemail').textContent = email;
 
                 const initials = initialsFromName(fullName !== '—' ? fullName : academicCode);
                 profileAvatar.textContent = initials;
 
-                // Cards
                 document.getElementById('pcodigo').textContent = academicCode || '—';
                 document.getElementById('pdni').textContent = dni || '—';
                 document.getElementById('papellidos').textContent = lastName || '—';
@@ -1156,7 +1237,6 @@
                 document.getElementById('pfacultad').textContent = faculty || '—';
                 document.getElementById('pcarrera').textContent = career || '—';
 
-                // Form fields
                 document.getElementById('name_profile').value = fullName !== '—' ? fullName : '';
                 document.getElementById('email_profile').value = email !== '—' ? email : '';
                 document.getElementById('codigo_profile').value = academicCode !== '—' ? academicCode : '';
@@ -1175,77 +1255,26 @@
                     }
                 }
 
+                const dniValue = (dni && dni !== '—') ? String(dni) : '';
+                syncProgressFromServer(dniValue).catch(() => {});
+
             } catch (err) {
-                console.warn('Profile load error:', err);
                 showError('No se pudo cargar el perfil: ' + (err.message || err));
             } finally {
                 hideLoader();
             }
         }
 
-        // ------------- PROGRESS BAR (3 pasos) -------------
-        function renderProgress() {
-            const stepsEl = document.getElementById('steps');
-            const progressStatus = document.getElementById('progressStatusText');
-
-            const formDone = localStorage.getItem('uma_form_saved') === '1';
-            const photoDone = localStorage.getItem('uma_photo_ok') === '1';
-
-            const titles = [
-                'Iniciaste sesión',
-                'Completa tu formulario',
-                'Sube tu foto'
-            ];
-
-            const states = ['done', 'todo', 'todo'];
-            if (formDone) states[1] = 'done';
-            if (photoDone) states[2] = 'done';
-
-            let firstTodo = states.findIndex(s => s === 'todo');
-            if (firstTodo === -1) firstTodo = states.length - 1;
-            if (states[firstTodo] !== 'done') states[firstTodo] = 'current';
-
-            const completed = states.filter(s => s === 'done').length;
-            const percent = Math.round((completed / states.length) * 100);
-            progressStatus.textContent = percent + '% completado';
-
-            let html = '<div class="stepper-line-fill" id="progressLine"></div>';
-            for (let i = 0; i < states.length; i++) {
-                const cls =
-                    states[i] === 'done'
-                        ? 'step-item done'
-                        : states[i] === 'current'
-                        ? 'step-item current'
-                        : 'step-item';
-                html += `
-                    <div class="${cls}">
-                        <div class="step-circle">${i + 1}</div>
-                        <div class="step-title-h">${titles[i]}</div>
-                    </div>`;
-            }
-            stepsEl.innerHTML = html;
-
-            const line = document.getElementById('progressLine');
-            let fillPercent = 0;
-            if (completed > 1) {
-                fillPercent = ((completed - 1) / (states.length - 1)) * 100;
-            }
-            if (line) line.style.width = fillPercent + '%';
-        }
-
-        // Guardar formulario
         document.getElementById('appForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            localStorage.setItem('uma_form_saved', '1');
+            setFlag(BASE_FORM_KEY, true);
             renderProgress();
             const saved = document.getElementById('saved');
             saved.style.display = '';
             setTimeout(() => { saved.style.display = 'none'; }, 1500);
-
             window.dispatchEvent(new Event('uma-form-saved'));
         });
 
-        // ------------- PHOTO SECTION -------------
         (function photoSection() {
             const drop = document.getElementById('drop');
             const fileInput = document.getElementById('file');
@@ -1258,15 +1287,18 @@
             const mSize = document.getElementById('mSize');
             const mDim = document.getElementById('mDim');
 
-            let lastValidResult = null;
             let currentFile = null;
 
             function isFormSaved() {
-                return localStorage.getItem('uma_form_saved') === '1';
+                return getFlag(BASE_FORM_KEY);
             }
 
             function updatePhotoLockState() {
                 const locked = !isFormSaved();
+
+                // ✅ AI becomes active when a file is selected (even if form not saved)
+                aiBtn.disabled = !currentFile;
+
                 if (locked) {
                     drop.classList.add('locked');
                     saveBtn.disabled = true;
@@ -1274,12 +1306,14 @@
                     photoMsg.textContent = 'Primero guarda el formulario para poder subir tu foto.';
                 } else {
                     drop.classList.remove('locked');
-                    photoMsg.style.color = '';
+
                     if (currentFile) {
                         saveBtn.disabled = false;
+                        photoMsg.style.color = '#27ae60'; // ✅ GREEN MESSAGE
                         photoMsg.textContent = 'Haz clic en "Guardar foto" para validar y guardar.';
                     } else {
                         saveBtn.disabled = true;
+                        photoMsg.style.color = '';
                         photoMsg.textContent = 'Selecciona una foto para validar y guardar.';
                     }
                 }
@@ -1312,10 +1346,7 @@
                     formData.append('esp', esp);
                     formData.append('facultad', facultad);
 
-                    const resp = await fetch('/validate', {
-                        method: 'POST',
-                        body: formData
-                    });
+                    const resp = await fetch('/validate', { method: 'POST', body: formData });
 
                     const text = await resp.text();
                     let data = {};
@@ -1328,8 +1359,7 @@
                         photoMsg.style.color = '#e74c3c';
                         photoMsg.textContent = 'Servidor rechazó la foto: ' + issues;
                         saveBtn.disabled = false;
-                        lastValidResult = null;
-                        localStorage.removeItem('uma_photo_ok');
+                        setFlag(BASE_PHOTO_KEY, false);
                         renderProgress();
                         return;
                     }
@@ -1338,54 +1368,28 @@
                         photoMsg.style.color = '#27ae60';
                         photoMsg.textContent = '✓ Foto aprobada y guardada correctamente.';
                         saveBtn.disabled = false;
-                        lastValidResult = data;
-                        localStorage.setItem('uma_photo_ok', '1');
+
+                        // ✅ if photo is ok, form is considered done too
+                        setFlag(BASE_PHOTO_KEY, true);
+                        setFlag(BASE_FORM_KEY, true);
+
                         renderProgress();
+                        updatePhotoLockState();
                     } else {
-                        const issues = data.issues && data.issues.length
-                            ? data.issues.join(' | ')
-                            : 'Foto rechazada por el validador.';
+                        const issues = data.issues && data.issues.length ? data.issues.join(' | ') : 'Foto rechazada por el validador.';
                         photoMsg.style.color = '#e74c3c';
                         photoMsg.textContent = issues;
                         saveBtn.disabled = false;
-                        lastValidResult = null;
-                        localStorage.removeItem('uma_photo_ok');
+                        setFlag(BASE_PHOTO_KEY, false);
                         renderProgress();
+                        updatePhotoLockState();
                     }
                 } catch (err) {
-                    console.error('Validation error:', err);
                     photoMsg.style.color = '#e74c3c';
                     photoMsg.textContent = 'Error de conexión al validar: ' + err.message;
                     saveBtn.disabled = false;
-                    lastValidResult = null;
-                    localStorage.removeItem('uma_photo_ok');
+                    setFlag(BASE_PHOTO_KEY, false);
                     renderProgress();
-                }
-            }
-
-            function showFile(f) {
-                currentFile = f;
-                const url = URL.createObjectURL(f);
-                imgPrev.src = url;
-                prev.style.display = 'grid';
-                mType.textContent = f.type || '—';
-                mSize.textContent = (f.size / 1024).toFixed(1) + ' KB';
-
-                const im = new Image();
-                im.onload = () => {
-                    mDim.textContent = `${im.width}×${im.height}`;
-                };
-                im.src = url;
-
-                lastValidResult = null;
-                localStorage.removeItem('uma_photo_ok');
-                renderProgress();
-
-                if (isFormSaved()) {
-                    saveBtn.disabled = false;
-                    photoMsg.style.color = '';
-                    photoMsg.textContent = 'Haz clic en "Guardar foto" para validar y guardar.';
-                } else {
                     updatePhotoLockState();
                 }
             }
@@ -1394,10 +1398,6 @@
                 if (!currentFile) {
                     photoMsg.style.color = '#e74c3c';
                     photoMsg.textContent = 'Primero selecciona una foto.';
-                    return;
-                }
-                if (!isFormSaved()) {
-                    updatePhotoLockState();
                     return;
                 }
 
@@ -1415,65 +1415,121 @@
                         body: formData
                     });
 
-                    const text = await resp.text();
-                    let data = {};
-                    try { data = text ? JSON.parse(text) : {}; } catch (e) {}
+                    const ct = (resp.headers.get('content-type') || '').toLowerCase();
 
-                    if (!resp.ok || data.ok !== true || !data.data_url) {
-                        const issues = (data && data.issues && data.issues.length)
-                            ? data.issues.join(' | ')
-                            : `No se pudo corregir la foto automáticamente (HTTP ${resp.status}).`;
-                        photoMsg.style.color = '#e74c3c';
-                        photoMsg.textContent = issues;
+                    // CASE A: server returns IMAGE
+                    if (resp.ok && ct.startsWith('image/')) {
+                        const blob = await resp.blob();
+                        const objectUrl = URL.createObjectURL(blob);
+
+                        imgPrev.src = objectUrl;
+                        prev.style.display = 'grid';
+
+                        mType.textContent = blob.type || 'image/jpeg';
+                        mSize.textContent = (blob.size / 1024).toFixed(1) + ' KB';
+
+                        const im = new Image();
+                        im.onload = () => { mDim.textContent = `${im.width}×${im.height}`; };
+                        im.src = objectUrl;
+
+                        const baseName = (currentFile.name || 'foto').replace(/\.[^/.]+$/, '');
+                        currentFile = new File([blob], baseName + '_fixed' + (blob.type.includes('png') ? '.png' : '.jpg'), {
+                            type: blob.type || 'image/jpeg'
+                        });
+
+                        setFlag(BASE_PHOTO_KEY, false);
+                        renderProgress();
+                        updatePhotoLockState();
+
+                        photoMsg.style.color = '#27ae60';
+                        photoMsg.textContent = 'Foto corregida. Ahora haz clic en "Guardar foto" para validarla.';
                         saveBtn.disabled = !isFormSaved();
                         return;
                     }
 
-                    const dataUrl = data.data_url;
+                    // CASE B: JSON
+                    const text = await resp.text();
+                    let data = {};
+                    try { data = text ? JSON.parse(text) : {}; } catch (e) {}
+
+                    if (!resp.ok || data.ok !== true) {
+                        const msg =
+                            (data && (data.error?.message || data.error)) ||
+                            text?.slice(0, 140) ||
+                            `No se pudo corregir la foto (HTTP ${resp.status}).`;
+                        photoMsg.style.color = '#e74c3c';
+                        photoMsg.textContent = msg;
+                        saveBtn.disabled = !isFormSaved();
+                        return;
+                    }
+
+                    const dataUrl = data.data_url || data.url;
+                    if (!dataUrl) {
+                        photoMsg.style.color = '#e74c3c';
+                        photoMsg.textContent = 'La respuesta de /fix-photo no contiene data_url.';
+                        saveBtn.disabled = !isFormSaved();
+                        return;
+                    }
+
                     imgPrev.src = dataUrl;
                     prev.style.display = 'grid';
 
-                    if (data.bytes) {
-                        mSize.textContent = (data.bytes / 1024).toFixed(1) + ' KB';
-                    }
-                    if (data.width && data.height) {
-                        mDim.textContent = `${data.width}×${data.height}`;
-                    }
-                    mType.textContent = 'image/jpeg';
+                    if (data.bytes) mSize.textContent = (data.bytes / 1024).toFixed(1) + ' KB';
+                    if (data.width && data.height) mDim.textContent = `${data.width}×${data.height}`;
+                    mType.textContent = data.mime || 'image/jpeg';
 
                     const blobResp = await fetch(dataUrl);
                     const blob = await blobResp.blob();
                     const baseName = (currentFile.name || 'foto').replace(/\.[^/.]+$/, '');
-                    const fixedName = baseName + '_fixed.jpg';
-                    const fixedFile = new File([blob], fixedName, { type: 'image/jpeg' });
-                    currentFile = fixedFile;
+                    currentFile = new File([blob], baseName + '_fixed.jpg', { type: blob.type || 'image/jpeg' });
 
-                    lastValidResult = null;
-                    localStorage.removeItem('uma_photo_ok');
+                    setFlag(BASE_PHOTO_KEY, false);
                     renderProgress();
+                    updatePhotoLockState();
 
                     photoMsg.style.color = '#27ae60';
                     photoMsg.textContent = 'Foto corregida. Ahora haz clic en "Guardar foto" para validarla.';
-                    if (isFormSaved()) {
-                        saveBtn.disabled = false;
-                    } else {
-                        updatePhotoLockState();
-                    }
+                    saveBtn.disabled = !isFormSaved();
                 } catch (err) {
-                    console.error('autoFixPhoto error', err);
+                    console.error('autoFixPhoto error:', err);
                     photoMsg.style.color = '#e74c3c';
-                    photoMsg.textContent = 'Error interno al intentar corregir la foto.';
+                    photoMsg.textContent = 'Error al conectar con /fix-photo: ' + (err.message || err);
                     saveBtn.disabled = !isFormSaved();
                 } finally {
-                    aiBtn.disabled = false;
+                    aiBtn.disabled = !currentFile;
+                }
+            }
+
+            function showFile(f) {
+                currentFile = f;
+
+                // ✅ AI active as soon as file selected
+                aiBtn.disabled = false;
+
+                const url = URL.createObjectURL(f);
+                imgPrev.src = url;
+                prev.style.display = 'grid';
+                mType.textContent = f.type || '—';
+                mSize.textContent = (f.size / 1024).toFixed(1) + ' KB';
+
+                const im = new Image();
+                im.onload = () => { mDim.textContent = `${im.width}×${im.height}`; };
+                im.src = url;
+
+                setFlag(BASE_PHOTO_KEY, false);
+                renderProgress();
+
+                if (isFormSaved()) {
+                    saveBtn.disabled = false;
+                    photoMsg.style.color = '#27ae60'; // ✅ GREEN MESSAGE
+                    photoMsg.textContent = 'Haz clic en "Guardar foto" para validar y guardar.';
+                } else {
+                    updatePhotoLockState();
                 }
             }
 
             drop.addEventListener('click', () => {
-                if (!isFormSaved()) {
-                    updatePhotoLockState();
-                    return;
-                }
+                if (!isFormSaved()) { updatePhotoLockState(); return; }
                 fileInput.click();
             });
 
@@ -1483,17 +1539,12 @@
                 drop.classList.add('dragover');
             });
 
-            drop.addEventListener('dragleave', () => {
-                drop.classList.remove('dragover');
-            });
+            drop.addEventListener('dragleave', () => { drop.classList.remove('dragover'); });
 
             drop.addEventListener('drop', (e) => {
                 e.preventDefault();
                 drop.classList.remove('dragover');
-                if (!isFormSaved()) {
-                    updatePhotoLockState();
-                    return;
-                }
+                if (!isFormSaved()) { updatePhotoLockState(); return; }
                 const f = e.dataTransfer.files?.[0];
                 if (f) showFile(f);
             });
@@ -1504,10 +1555,7 @@
             });
 
             saveBtn.addEventListener('click', () => {
-                if (!isFormSaved()) {
-                    updatePhotoLockState();
-                    return;
-                }
+                if (!isFormSaved()) { updatePhotoLockState(); return; }
                 if (!currentFile) {
                     photoMsg.style.color = '#e67e22';
                     photoMsg.textContent = 'Primero selecciona una foto.';
@@ -1516,11 +1564,7 @@
                 callValidator(currentFile);
             });
 
-            if (aiBtn) {
-                aiBtn.addEventListener('click', () => {
-                    autoFixPhoto();
-                });
-            }
+            aiBtn.addEventListener('click', autoFixPhoto);
 
             window.addEventListener('uma-form-saved', updatePhotoLockState);
             updatePhotoLockState();
